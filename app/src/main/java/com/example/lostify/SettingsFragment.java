@@ -1,5 +1,6 @@
 package com.example.lostify;
 
+import android.content.Intent;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
@@ -30,13 +31,13 @@ public class SettingsFragment extends Fragment {
 
 
         // --- Account Button ---
+        // --- Account Button ---
         btnAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Toast.makeText(getActivity(), "Account Clicked", Toast.LENGTH_SHORT).show();
-
-
+                // Toast ki jagah ye Intent lagayen
+                Intent intent = new Intent(getActivity(), AccountActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -44,7 +45,7 @@ public class SettingsFragment extends Fragment {
         btnNotifications.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "Notifications Clicked", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getActivity(), NotificationsActivity.class));
             }
         });
 
@@ -52,18 +53,16 @@ public class SettingsFragment extends Fragment {
         btnPrivacy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "Privacy Clicked", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getActivity(), PrivacyActivity.class));
             }
         });
 
-        // --- Help Button ---
         btnHelp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "Help Clicked", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(getActivity(), HelpActivity.class));
             }
         });
-
         return view;
     }
 }

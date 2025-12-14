@@ -19,7 +19,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/message_input_layout"
-        tools:listitem="@layout/item_message_sent"
+        tools:listitem="@layout/item_chat_sent"
         tools:itemCount="4"/>
 
     <LinearLayout

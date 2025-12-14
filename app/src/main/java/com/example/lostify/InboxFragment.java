@@ -19,8 +19,8 @@ public class InboxFragment extends Fragment {
 
     RecyclerView recyclerView;
     EditText searchBar;
-    ConversationAdapter adapter;
-    List<ConversationModel> conversationList;
+    InboxAdapter adapter;
+    List<InboxModel> conversationList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,11 +39,11 @@ public class InboxFragment extends Fragment {
         conversationList = new ArrayList<>();
 
         // Dummy Data
-        conversationList.add(new ConversationModel("2", "Ali Ahmed", "Thanks for the help!", "10:30 AM"));
-        conversationList.add(new ConversationModel("3", "Library Admin", "Is this your bag?", "Yesterday"));
-        conversationList.add(new ConversationModel("4", "Hamza", "Ok, coming.", "Mon"));
+        conversationList.add(new InboxModel("2", "Ali Ahmed", "Thanks for the help!", "10:30 AM"));
+        conversationList.add(new InboxModel("3", "Library Admin", "Is this your bag?", "Yesterday"));
+        conversationList.add(new InboxModel("4", "Hamza", "Ok, coming.", "Mon"));
 
-        adapter = new ConversationAdapter(getContext(), conversationList);
+        adapter = new InboxAdapter(getContext(), conversationList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 

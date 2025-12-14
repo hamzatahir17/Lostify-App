@@ -1,12 +1,12 @@
 package com.example.lostify;
 
-public class ConversationModel {
+public class InboxModel {
     String userId;      // Jisse baat ho rahi hai uski ID
     String userName;    // Uska naam
     String lastMessage; // Aakhri message
     String time;
 
-    public ConversationModel(String userId, String userName, String lastMessage, String time) {
+    public InboxModel(String userId, String userName, String lastMessage, String time) {
         this.userId = userId;
         this.userName = userName;
         this.lastMessage = lastMessage;

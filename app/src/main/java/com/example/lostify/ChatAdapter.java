@@ -41,10 +41,10 @@ public class ChatAdapter extends RecyclerView.Adapter {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         if (viewType == VIEW_TYPE_SENT) {
-            view = LayoutInflater.from(context).inflate(R.layout.item_message_sent, parent, false);
+            view = LayoutInflater.from(context).inflate(R.layout.item_chat_sent, parent, false);
             return new SentMessageViewHolder(view);
         } else {
-            view = LayoutInflater.from(context).inflate(R.layout.item_message_received, parent, false);
+            view = LayoutInflater.from(context).inflate(R.layout.item_chat_received, parent, false);
             return new ReceivedMessageViewHolder(view);
         }
     }

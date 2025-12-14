@@ -1,7 +1,6 @@
 package com.example.lostify;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +10,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapter.ViewHolder> {
+public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.ViewHolder> {
 
     private Context context;
-    private List<ConversationModel> list;
+    private List<InboxModel> list;
 
-    public ConversationAdapter(Context context, List<ConversationModel> list) {
+    public InboxAdapter(Context context, List<InboxModel> list) {
         this.context = context;
         this.list = list;
     }
@@ -24,13 +23,13 @@ public class ConversationAdapter extends RecyclerView.Adapter<ConversationAdapte
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_conversation_row, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_inbox_row, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ConversationModel model = list.get(position);
+        InboxModel model = list.get(position);
 
         holder.tvName.setText(model.getUserName());
         holder.tvLastMsg.setText(model.getLastMessage());

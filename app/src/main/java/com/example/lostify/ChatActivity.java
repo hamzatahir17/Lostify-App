@@ -9,7 +9,7 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_container); // Step 1 wali file
+        setContentView(R.layout.activity_chat); // Step 1 wali file
 
         // Back Button (Toolbar)
         if (getSupportActionBar() != null) {
