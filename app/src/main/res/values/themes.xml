@@ -3,8 +3,17 @@
 
         <item name="android:statusBarColor">#1565C0</item>
         <item name="android:windowLightStatusBar">false</item>
+
         <item name="colorPrimary">#1565C0</item>
         <item name="colorOnPrimary">#FFFFFF</item>
+
+        <item name="colorSecondaryContainer">#E3F2FD</item>
+
+        <item name="colorOnSecondaryContainer">#1565C0</item>
+
+
+        <item name="android:navigationBarColor">#FFFFFF</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
 
         <item name="android:datePickerDialogTheme">@style/MyDatePickerStyle</item>
         <item name="android:timePickerDialogTheme">@style/MyTimePickerStyle</item>
@@ -14,13 +23,17 @@
     <style name="Theme.Lostify" parent="Base.Theme.Lostify" />
 
     <style name="MyDatePickerStyle" parent="ThemeOverlay.Material3.MaterialCalendar">
-        <item name="colorPrimary">#1565C0</item>       <item name="colorOnPrimary">#FFFFFF</item>     <item name="colorAccent">#1565C0</item>        <item name="buttonBarPositiveButtonStyle">@style/MyButtonTextStyle</item>
+        <item name="colorPrimary">#1565C0</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorAccent">#1565C0</item>
+        <item name="buttonBarPositiveButtonStyle">@style/MyButtonTextStyle</item>
         <item name="buttonBarNegativeButtonStyle">@style/MyButtonTextStyle</item>
     </style>
 
     <style name="MyTimePickerStyle" parent="ThemeOverlay.Material3.MaterialTimePicker">
-        <item name="colorPrimary">#1565C0</item>       <item name="colorOnPrimary">#FFFFFF</item>     <item name="colorAccent">#1565C0</item>
-
+        <item name="colorPrimary">#1565C0</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorAccent">#1565C0</item>
         <item name="buttonBarPositiveButtonStyle">@style/MyButtonTextStyle</item>
         <item name="buttonBarNegativeButtonStyle">@style/MyButtonTextStyle</item>
     </style>

@@ -18,21 +18,27 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.frame_layout, new HomeFragment())
-                .commit();
-
+        // Default screen Home honi chahiye
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame_layout, new HomeFragment())
+                    .commit();
+        }
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
 
             int itemId = item.getItemId();
+
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
-            } else if (itemId == R.id.nav_chat) {
-                selectedFragment = new ChatFragment();
-            } else if (itemId == R.id.nav_settings) {
+            }
+            else if (itemId == R.id.nav_chat) {
+                // CHANGE: Yahan ChatFragment ki jagah InboxFragment ayega
+                // Kyunki humein pehle users ki list dikhani hai
+                selectedFragment = new InboxFragment();
+            }
+            else if (itemId == R.id.nav_settings) {
                 selectedFragment = new SettingsFragment();
             }
 

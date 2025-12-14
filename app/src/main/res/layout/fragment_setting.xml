@@ -4,37 +4,31 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="#1565C0"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Settings"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/tvSettingsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textColor="#1565C0"
+        android:textSize="30sp"
+        android:letterSpacing="-0.02"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:fontFamily="@font/bold"/>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="2dp"
+        android:layout_marginTop="24dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp"
         app:cardBackgroundColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout">
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -44,9 +38,9 @@
             <RelativeLayout
                 android:id="@+id/btnAccount"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="64dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true">
@@ -57,25 +51,26 @@
                     android:layout_centerVertical="true"
                     android:text="Account"
                     android:textColor="#000000"
-                    android:textSize="18sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/chevron"
                     app:tint="#BDBDBD"/>
             </RelativeLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginStart="20dp"/>
 
             <RelativeLayout
                 android:id="@+id/btnNotifications"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="64dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true">
@@ -86,25 +81,26 @@
                     android:layout_centerVertical="true"
                     android:text="Notifications"
                     android:textColor="#000000"
-                    android:textSize="18sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/chevron"
                     app:tint="#BDBDBD"/>
             </RelativeLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginStart="20dp"/>
 
             <RelativeLayout
                 android:id="@+id/btnPrivacy"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="64dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true">
@@ -115,25 +111,26 @@
                     android:layout_centerVertical="true"
                     android:text="Privacy"
                     android:textColor="#000000"
-                    android:textSize="18sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/chevron"
                     app:tint="#BDBDBD"/>
             </RelativeLayout>
 
-            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E0E0E0" android:layout_marginStart="16dp"/>
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#F5F5F5" android:layout_marginStart="20dp"/>
 
             <RelativeLayout
                 android:id="@+id/btnHelp"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:layout_height="64dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
                 android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true">
@@ -144,11 +141,12 @@
                     android:layout_centerVertical="true"
                     android:text="Help"
                     android:textColor="#000000"
-                    android:textSize="18sp" />
+                    android:textSize="16sp"
+                    android:textStyle="bold"/>
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:src="@drawable/chevron"

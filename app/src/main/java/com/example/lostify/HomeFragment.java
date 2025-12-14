@@ -61,13 +61,66 @@ public class HomeFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         reportList = new ArrayList<>();
-        reportList.add(new ReportItem("Bagpack", "Library, 2nd Floor", "2 hrs ago", "LOST", R.drawable.bagpack));
-        reportList.add(new ReportItem("Calculator", "Main Auditorium", "Yesterday", "FOUND", R.drawable.calculator));
-        reportList.add(new ReportItem("Keys", "Cafeteria Table 4", "3 hrs ago", "LOST", R.drawable.banner1));
-        reportList.add(new ReportItem("ID Card", "Sports Complex", "Today", "FOUND", R.drawable.banner2));
-        reportList.add(new ReportItem("Blue Bottle", "Computer Lab", "1 hr ago", "LOST", R.drawable.bagpack));
-        reportList.add(new ReportItem("Wallet", "Canteen", "Yesterday", "LOST", R.drawable.calculator));
 
+// 1. Bagpack
+        reportList.add(new ReportItem(
+                "Bagpack",
+                "Library, 2nd Floor",
+                "2 hrs ago",
+                "LOST",
+                R.drawable.bagpack,
+                "I lost my black backpack near the history section table. It contains a Dell laptop and two blue notebooks. Please contact if found."
+        ));
+
+// 2. Calculator
+        reportList.add(new ReportItem(
+                "Calculator",
+                "Main Auditorium",
+                "Yesterday",
+                "FOUND",
+                R.drawable.calculator,
+                "Found a Casio Scientific Calculator on the last row seat. Please claim it from the admin office."
+        ));
+
+// 3. Keys
+        reportList.add(new ReportItem(
+                "Keys",
+                "Cafeteria Table 4",
+                "3 hrs ago",
+                "LOST",
+                R.drawable.banner1,
+                "A bunch of 3 keys with a Spider-Man keychain. Lost it while having lunch."
+        ));
+
+// 4. ID Card
+        reportList.add(new ReportItem(
+                "ID Card",
+                "Sports Complex",
+                "Today",
+                "FOUND",
+                R.drawable.banner2,
+                "Found a Student ID Card belonging to 'Ali Khan'. Currently submitted to the security guard."
+        ));
+
+// 5. Blue Bottle
+        reportList.add(new ReportItem(
+                "Blue Bottle",
+                "Computer Lab",
+                "1 hr ago",
+                "LOST",
+                R.drawable.bagpack,
+                "My blue metal water bottle was left on the desk in Lab 3. It has a sticker of 'Coding' on it."
+        ));
+
+// 6. Wallet
+        reportList.add(new ReportItem(
+                "Wallet",
+                "Canteen",
+                "Yesterday",
+                "LOST",
+                R.drawable.calculator,
+                "Brown leather wallet lost somewhere near the canteen. Contains my Driving License and some cash."
+        ));
         reportAdapter = new ReportAdapter(reportList);
         recyclerView.setAdapter(reportAdapter);
 

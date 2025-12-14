@@ -1,5 +1,7 @@
 package com.example.lostify;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +15,12 @@ import java.util.ArrayList;
 
 public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportViewHolder> {
 
-    private ArrayList<ReportItem> originalList; // Asli data
-    private ArrayList<ReportItem> displayList;  // Wo data jo screen par dikh raha hai
+    private ArrayList<ReportItem> originalList;
+    private ArrayList<ReportItem> displayList;
 
     public ReportAdapter(ArrayList<ReportItem> list) {
         this.originalList = list;
-        this.displayList = new ArrayList<>(list); // Shuru mein sab kuch dikhao
+        this.displayList = new ArrayList<>(list);
     }
 
     @NonNull
@@ -30,22 +32,42 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     @Override
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
+        // 1. Current Item nikalo (Jo screen par dikhana hai)
         ReportItem item = displayList.get(position);
 
+        // 2. Data Set karo
         holder.tvTitle.setText(item.getTitle());
         holder.tvLocation.setText(item.getLocation());
         holder.tvTime.setText(item.getTime());
         holder.tvStatus.setText(item.getStatus());
         holder.itemImage.setImageResource(item.getImageResId());
 
-        // Status ke hisab se rang badalna (Red for Lost, Green for Found)
+        // 3. Status Color Logic
         if (item.getStatus().equals("LOST")) {
-            holder.statusCard.setCardBackgroundColor(Color.parseColor("#FFEBEE")); // Light Red
-            holder.tvStatus.setTextColor(Color.parseColor("#D32F2F")); // Dark Red
+            holder.statusCard.setCardBackgroundColor(Color.parseColor("#FFEBEE"));
+            holder.tvStatus.setTextColor(Color.parseColor("#D32F2F"));
         } else {
-            holder.statusCard.setCardBackgroundColor(Color.parseColor("#E8F5E9")); // Light Green
-            holder.tvStatus.setTextColor(Color.parseColor("#388E3C")); // Dark Green
+            holder.statusCard.setCardBackgroundColor(Color.parseColor("#E8F5E9"));
+            holder.tvStatus.setTextColor(Color.parseColor("#388E3C"));
         }
+
+        // --- NEW: CLICK LISTENER ADDED HERE 🟢 ---
+        holder.itemView.setOnClickListener(v -> {
+            Context context = v.getContext();
+            Intent intent = new Intent(context, ItemDetailActivity.class);
+
+            // Data pass kar rahe hain agli screen ko
+            intent.putExtra("ITEM_TITLE", item.getTitle());
+            intent.putExtra("ITEM_LOCATION", item.getLocation());
+            intent.putExtra("ITEM_TIME", item.getTime());
+            intent.putExtra("ITEM_STATUS", item.getStatus());
+            intent.putExtra("ITEM_IMAGE", item.getImageResId());
+
+            // Note: Make sure ReportItem.java mein getDescription() ka method ho
+            intent.putExtra("ITEM_DESC", item.getDescription());
+
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -53,33 +75,21 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         return displayList.size();
     }
 
-    // --- SEARCH FILTER LOGIC (UPDATED) ---
-    // Ab yeh method 'boolean' return karega (True = List Empty, False = Data Hai)
     public boolean filterList(String query) {
-        // Nayi temporary list banayi taake purani kharab na ho
         ArrayList<ReportItem> filteredList = new ArrayList<>();
-
-        // Agar query khali hai ya null hai
         if (query == null || query.trim().isEmpty()) {
-            filteredList.addAll(originalList); // Sab wapis dikhao
+            filteredList.addAll(originalList);
         } else {
-            // Text ko lowercase karo aur extra spaces hatao
             String filterPattern = query.toLowerCase().trim();
-
             for (ReportItem item : originalList) {
-                // Title ya Location mein check karo
                 if (item.getTitle().toLowerCase().trim().contains(filterPattern) ||
                         item.getLocation().toLowerCase().trim().contains(filterPattern)) {
                     filteredList.add(item);
                 }
             }
         }
-
-        // List update karo
         displayList = filteredList;
         notifyDataSetChanged();
-
-        // Agar list khali hai to TRUE bhejega, taake Fragment "No Data" show kare
         return displayList.isEmpty();
     }
 
