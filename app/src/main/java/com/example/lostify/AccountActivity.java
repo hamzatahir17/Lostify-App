@@ -19,7 +19,7 @@ public class AccountActivity extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish()); // Activity band kar ke wapis bhej dega
 
-        // 2. Save Button
+        // 2. Update Button
         Button btnSave = findViewById(R.id.btnSave);
         btnSave.setOnClickListener(v -> {
             // Yahan baad mein Database update ka code aayega

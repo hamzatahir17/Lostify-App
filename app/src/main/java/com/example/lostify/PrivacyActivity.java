@@ -12,13 +12,13 @@ public class PrivacyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_privacy);
 
-        // --- Back Button Logic ---
+        // Back Button Logic
         ImageView btnBack = findViewById(R.id.btnBack);
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Screen band karega aur wapis Settings par le jayega
+                // Page band karein aur wapis jayen
                 finish();
             }
         });
