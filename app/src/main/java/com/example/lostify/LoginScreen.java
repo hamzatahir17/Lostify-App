@@ -13,7 +13,7 @@ import com.google.android.material.button.MaterialButton;
 
 public class LoginScreen extends AppCompatActivity {
 
-    // Variables
+    // UI Components
     private EditText etEmail;
     private MaterialButton btnGetOTP;
     private TextView tvSignUp;
@@ -21,37 +21,35 @@ public class LoginScreen extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Make sure aapka XML file name yahi hai
         setContentView(R.layout.activity_login_screen);
 
-        // 1. IDs Connect karna
+        // Initialize UI components by their XML IDs
         etEmail = findViewById(R.id.etEmailLogin);
         btnGetOTP = findViewById(R.id.btnGetOTP);
         tvSignUp = findViewById(R.id.tvSignUp);
 
-        // 2. "Get OTP" Button Logic
+        // Logic for "Get OTP" button click
         btnGetOTP.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String email = etEmail.getText().toString().trim();
 
-                // Validation: Check karein email khali to nahi
+                // Input Validation: Ensure the email field is not empty
                 if (TextUtils.isEmpty(email)) {
                     etEmail.setError("Email is Required!");
                     return;
                 }
 
-                // User ko feedback dein
-                Toast.makeText(LoginScreen.this, "Otp sending ...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginScreen.this, "Sending OTP...", Toast.LENGTH_SHORT).show();
 
-                // OTP Screen par shift hon
+                // Navigate to OtpActivity and pass the email address for verification
                 Intent intent = new Intent(LoginScreen.this, OtpActivity.class);
-                intent.putExtra("userEmail", email); // Email agle page par bhejen
+                intent.putExtra("userEmail", email);
                 startActivity(intent);
             }
         });
 
-        // 3. "Sign Up" Link Logic (Create Account Page par jane ke liye)
+        // Navigation to the Signup screen
         tvSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

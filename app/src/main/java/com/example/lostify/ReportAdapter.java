@@ -26,23 +26,24 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     @NonNull
     @Override
     public ReportViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate the custom item layout for each row
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_report, parent, false);
         return new ReportViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
-        // 1. Current Item nikalo (Jo screen par dikhana hai)
+        // Retrieve data for the current position
         ReportItem item = displayList.get(position);
 
-        // 2. Data Set karo
+        // Bind data to UI components
         holder.tvTitle.setText(item.getTitle());
         holder.tvLocation.setText(item.getLocation());
         holder.tvTime.setText(item.getTime());
         holder.tvStatus.setText(item.getStatus());
         holder.itemImage.setImageResource(item.getImageResId());
 
-        // 3. Status Color Logic
+        // Apply dynamic styling based on item status (LOST vs FOUND)
         if (item.getStatus().equals("LOST")) {
             holder.statusCard.setCardBackgroundColor(Color.parseColor("#FFEBEE"));
             holder.tvStatus.setTextColor(Color.parseColor("#D32F2F"));
@@ -51,19 +52,17 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
             holder.tvStatus.setTextColor(Color.parseColor("#388E3C"));
         }
 
-        // --- NEW: CLICK LISTENER ADDED HERE 🟢 ---
+        // Handle item click navigation to ItemDetailActivity
         holder.itemView.setOnClickListener(v -> {
             Context context = v.getContext();
             Intent intent = new Intent(context, ItemDetailActivity.class);
 
-            // Data pass kar rahe hain agli screen ko
+            // Pass item details to the destination activity using Intent Extras
             intent.putExtra("ITEM_TITLE", item.getTitle());
             intent.putExtra("ITEM_LOCATION", item.getLocation());
             intent.putExtra("ITEM_TIME", item.getTime());
             intent.putExtra("ITEM_STATUS", item.getStatus());
             intent.putExtra("ITEM_IMAGE", item.getImageResId());
-
-            // Note: Make sure ReportItem.java mein getDescription() ka method ho
             intent.putExtra("ITEM_DESC", item.getDescription());
 
             context.startActivity(intent);
@@ -75,6 +74,9 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         return displayList.size();
     }
 
+    /**
+     * Filters the list based on search query and updates the UI
+     */
     public boolean filterList(String query) {
         ArrayList<ReportItem> filteredList = new ArrayList<>();
         if (query == null || query.trim().isEmpty()) {
@@ -82,6 +84,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         } else {
             String filterPattern = query.toLowerCase().trim();
             for (ReportItem item : originalList) {
+                // Search by title or location
                 if (item.getTitle().toLowerCase().trim().contains(filterPattern) ||
                         item.getLocation().toLowerCase().trim().contains(filterPattern)) {
                     filteredList.add(item);
@@ -93,6 +96,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         return displayList.isEmpty();
     }
 
+    // ViewHolder class to cache UI references
     public static class ReportViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvLocation, tvTime, tvStatus;
         ImageView itemImage;

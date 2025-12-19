@@ -1,9 +1,9 @@
 package com.example.lostify;
 
 public class InboxModel {
-    String userId;      // Jisse baat ho rahi hai uski ID
-    String userName;    // Uska naam
-    String lastMessage; // Aakhri message
+    String userId;
+    String userName;
+    String lastMessage;
     String time;
 
     public InboxModel(String userId, String userName, String lastMessage, String time) {

@@ -15,7 +15,7 @@ import com.google.android.material.button.MaterialButton;
 
 public class OtpActivity extends AppCompatActivity {
 
-    // 1. Variables Declare karein
+    // UI Components for OTP input
     private EditText otp1, otp2, otp3, otp4;
     private MaterialButton btnVerify;
     private TextView tvResend;
@@ -25,7 +25,7 @@ public class OtpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_otp);
 
-        // 2. XML IDs ko Java se Connect karein
+        // Initialize UI components
         otp1 = findViewById(R.id.otp1);
         otp2 = findViewById(R.id.otp2);
         otp3 = findViewById(R.id.otp3);
@@ -33,20 +33,20 @@ public class OtpActivity extends AppCompatActivity {
         btnVerify = findViewById(R.id.btnVerifyOTP);
         tvResend = findViewById(R.id.tvResend);
 
-        // 3. Login Screen se aaya hua Email receive karein (Optional)
+        // Retrieve the email address passed from the Login screen
         String userEmail = getIntent().getStringExtra("userEmail");
         if (userEmail != null) {
             Toast.makeText(this, "Code sent to: " + userEmail, Toast.LENGTH_LONG).show();
         }
 
-        // 4. Cursor Movement Logic (Jadoo ✨)
+        // Initialize the focus movement logic between input boxes
         setupOTPInputs();
 
-        // 5. Verify Button ka Kaam
+        // Verification button logic
         btnVerify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Saare numbers ko jod kar aik string banayen
+                // Concatenate individual digits into a single string
                 String code = otp1.getText().toString().trim() +
                         otp2.getText().toString().trim() +
                         otp3.getText().toString().trim() +
@@ -55,47 +55,43 @@ public class OtpActivity extends AppCompatActivity {
                 if (code.length() < 4) {
                     Toast.makeText(OtpActivity.this, "Please enter valid 4-digit code", Toast.LENGTH_SHORT).show();
                 } else {
-                    // --- SUCCESS LOGIC ---
-
                     Toast.makeText(OtpActivity.this, "Verification Successful!", Toast.LENGTH_SHORT).show();
 
-                    // 1. Home Screen (MainActivity) par jane ka intent
+                    // Navigate to MainActivity
                     Intent intent = new Intent(OtpActivity.this, MainActivity.class);
                     startActivity(intent);
 
-                    // 2. Pichli screens (Login/OTP) ko khatam kr den
-                    // Taake user Home se Back dabaye to wapis Login par na jaye
+                    // Clear the activity stack so the user cannot navigate back to the OTP screen
                     finishAffinity();
                 }
             }
         });
     }
 
-    // Yeh function cursor ko agle dabbay mein bhejta hai
+    /**
+     * Handles automatic focus movement to the next EditText when a digit is entered.
+     */
     private void setupOTPInputs() {
-        // Box 1 ke liye listener
         otp1.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 1) { otp2.requestFocus(); } // 1 likha to 2 pe jao
+                if (s.length() == 1) { otp2.requestFocus(); }
             }
             public void afterTextChanged(Editable s) {}
         });
 
-        // Box 2 ke liye listener
         otp2.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 1) { otp3.requestFocus(); } // 1 likha to 3 pe jao
+                if (s.length() == 1) { otp3.requestFocus(); }
             }
             public void afterTextChanged(Editable s) {}
         });
 
-        // Box 3 ke liye listener
         otp3.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() == 1) { otp4.requestFocus(); } // 1 likha to 4 pe jao
+                if (s.length() == 1) { otp4.requestFocus(); }
             }
             public void afterTextChanged(Editable s) {}
         });

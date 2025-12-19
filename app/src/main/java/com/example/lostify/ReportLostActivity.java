@@ -1,20 +1,19 @@
 package com.example.lostify;
 
-import android.app.DatePickerDialog; // Import
-import android.app.TimePickerDialog; // Import
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;      // Import
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-import java.util.Calendar;           // Import
+import java.util.Calendar;
 
 public class ReportLostActivity extends AppCompatActivity {
 
-    // Variables declare karein
     private EditText etDate, etTime;
 
     @Override
@@ -23,66 +22,67 @@ public class ReportLostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_report_lost);
 
         // ==========================================
-        // 1. TOOLBAR SETUP
+        // 1. HEADER SETUP
         // ==========================================
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        // Initialize custom back button and handle click event
+        ImageView btnBack = findViewById(R.id.btnBack);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
-        toolbar.setNavigationOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Return to the previous screen
+                finish();
+            }
+        });
 
         // ==========================================
         // 2. SPINNER SETUP
         // ==========================================
         Spinner spinner = findViewById(R.id.spinnerCategory);
         String[] categories = {"Electronics", "Books", "Bags", "Clothing", "Wallet/Keys", "Others"};
+
+        // Populate the spinner with categories using a default layout
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categories);
         spinner.setAdapter(adapter);
 
         // ==========================================
-        // 3. DATE & TIME PICKER LOGIC (NEW)
+        // 3. DATE & TIME PICKER LOGIC
         // ==========================================
         etDate = findViewById(R.id.etDate);
         etTime = findViewById(R.id.etTime);
 
-        // --- DATE PICKER ---
+        // --- Handle Date Selection ---
         etDate.setOnClickListener(v -> {
-            // Aaj ki date nikalein
             final Calendar c = Calendar.getInstance();
             int year = c.get(Calendar.YEAR);
             int month = c.get(Calendar.MONTH);
             int day = c.get(Calendar.DAY_OF_MONTH);
 
-            // Dialog dikhayen
+            // Display DatePickerDialog to ensure standard date format input
             DatePickerDialog datePickerDialog = new DatePickerDialog(
                     ReportLostActivity.this,
                     (view, year1, month1, dayOfMonth) -> {
-                        // Month + 1 zaroori hai kyunki Java mein month 0 se shuru hota hai
+                        // Display formatted date (Month +1 because Java months are 0-indexed)
                         etDate.setText(dayOfMonth + "/" + (month1 + 1) + "/" + year1);
                     },
                     year, month, day);
             datePickerDialog.show();
         });
 
-        // --- TIME PICKER ---
+        // --- Handle Time Selection ---
         etTime.setOnClickListener(v -> {
-            // Abhi ka time nikalein
             final Calendar c = Calendar.getInstance();
             int hour = c.get(Calendar.HOUR_OF_DAY);
             int minute = c.get(Calendar.MINUTE);
 
-            // Dialog dikhayen
+            // Display TimePickerDialog with 12-hour format logic
             TimePickerDialog timePickerDialog = new TimePickerDialog(
                     ReportLostActivity.this,
                     (view, hourOfDay, minute1) -> {
-                        // AM/PM Logic
                         String amPm;
                         int hour12;
 
+                        // Convert 24-hour time to 12-hour format
                         if (hourOfDay >= 12) {
                             amPm = "PM";
                             hour12 = (hourOfDay > 12) ? hourOfDay - 12 : hourOfDay;
@@ -91,12 +91,11 @@ public class ReportLostActivity extends AppCompatActivity {
                             hour12 = (hourOfDay == 0) ? 12 : hourOfDay;
                         }
 
-                        // Minutes ko '05' format mein dikhane ke liye
+                        // Format minutes to always show two digits (e.g., 05 instead of 5)
                         String formattedMinute = String.format("%02d", minute1);
-
                         etTime.setText(hour12 + ":" + formattedMinute + " " + amPm);
                     },
-                    hour, minute, false); // false = AM/PM format
+                    hour, minute, false); // Set is24HourView to false for AM/PM
             timePickerDialog.show();
         });
     }

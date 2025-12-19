@@ -18,30 +18,30 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Default screen Home honi chahiye
+        // Set the default screen to HomeFragment on first launch
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_layout, new HomeFragment())
                     .commit();
         }
 
+        // Handle navigation item selection
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
-
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
             }
             else if (itemId == R.id.nav_chat) {
-                // CHANGE: Yahan ChatFragment ki jagah InboxFragment ayega
-                // Kyunki humein pehle users ki list dikhani hai
+                // Navigating to InboxFragment to display the list of conversations
                 selectedFragment = new InboxFragment();
             }
             else if (itemId == R.id.nav_settings) {
                 selectedFragment = new SettingsFragment();
             }
 
+            // Execute the Fragment replacement
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_layout, selectedFragment)

@@ -12,13 +12,13 @@ public class NotificationsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
 
-        // --- Back Button Logic ---
+
         ImageView btnBack = findViewById(R.id.btnBack);
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Ye current activity band karega aur wapis pichli screen (Settings) par le jayega
+
                 finish();
             }
         });

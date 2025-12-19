@@ -21,12 +21,13 @@ public class HelpActivity extends AppCompatActivity {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish(); // Wapis Settings par bhejne ke liye
+                // Return to the Settings screen
+                finish();
             }
         });
 
-        // --- Contact Us Logic (UPDATED: Ab ye Email App kholega) ---
-        // Maine View use kiya hai taake agar ye TextView ho ya CardView, dono par chale
+        // --- Contact Us Logic ---
+        // Using View type to support both TextView or CardView clicks
         View btnContact = findViewById(R.id.btnContact);
         btnContact.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -35,24 +36,26 @@ public class HelpActivity extends AppCompatActivity {
             }
         });
 
-        // --- Terms & Conditions Logic (SAME: "Soon...") ---
+        // --- Terms & Conditions Logic ---
         TextView btnTerms = findViewById(R.id.btnTerms);
         btnTerms.setOnClickListener(v ->
                 Toast.makeText(HelpActivity.this, "Soon...", Toast.LENGTH_SHORT).show()
         );
     }
 
-    // Email kholne ka function
+    /**
+     * Opens the device's default email application to contact support
+     */
     private void openEmailSupport() {
         try {
             Intent intent = new Intent(Intent.ACTION_SENDTO);
-            // "mailto:" ka matlab hai seedha email app khulega
+            // "mailto:" protocol ensures only email apps handle this intent
             intent.setData(Uri.parse("mailto:support@lostify.com"));
             intent.putExtra(Intent.EXTRA_SUBJECT, "Help Needed - Lostify");
 
             startActivity(intent);
         } catch (Exception e) {
-            // Agar phone mein koi email app na ho
+            // Error handling if no email client is installed
             Toast.makeText(HelpActivity.this, "No email app found.", Toast.LENGTH_SHORT).show();
         }
     }

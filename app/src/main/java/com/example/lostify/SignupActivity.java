@@ -23,10 +23,10 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // 1. IDs Connect karna
+        // 1. IDs Connect
         etFullName = findViewById(R.id.etFullName);
         etEmail = findViewById(R.id.etEmailSignup);
-        // Phone wali line remove kar di
+
 
         btnSignup = findViewById(R.id.btnSignup);
         tvLoginLink = findViewById(R.id.tvLoginLink);

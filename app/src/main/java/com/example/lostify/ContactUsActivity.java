@@ -16,11 +16,11 @@ public class ContactUsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_contact_us);
 
-        // 1. Views dhoondna
+        // Initialize UI components
         ImageView btnBack = findViewById(R.id.btnBack);
         CardView cardEmail = findViewById(R.id.cardEmailUs);
 
-        // 2. Back Button Logic
+        // Handle back button click to return to the previous screen
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -28,7 +28,7 @@ public class ContactUsActivity extends AppCompatActivity {
             }
         });
 
-        // 3. Email Card Logic (Seedha Gmail Kholega)
+        // Trigger email intent when the contact card is clicked
         cardEmail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -37,17 +37,21 @@ public class ContactUsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Creates and starts an Intent to open the device's email client.
+     */
     private void openEmailApp() {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
-        // "mailto:" lagane se phone samajh jata hai ke sirf email app kholna hai
+        // "mailto:" ensures only email clients handle this intent
         intent.setData(Uri.parse("mailto:support@lostify.com"));
 
-        // Optional: Subject pehle se likha hua aa jaye
+        // Optional: Pre-fill the email subject line
         intent.putExtra(Intent.EXTRA_SUBJECT, "Help Needed - Lostify");
 
         try {
             startActivity(intent);
         } catch (Exception e) {
+            // Handle cases where no email application is installed
             Toast.makeText(ContactUsActivity.this, "No email app found.", Toast.LENGTH_SHORT).show();
         }
     }

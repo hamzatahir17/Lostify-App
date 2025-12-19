@@ -1,7 +1,7 @@
 package com.example.lostify;
 
 import android.content.Context;
-import android.content.Intent;            // NEW IMPORT for switching screens
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,21 +30,20 @@ import java.util.List;
 
 public class HomeFragment extends Fragment {
 
-    // --- Variables ---
+    // --- UI Components ---
     private View btnReportLost, btnReportFound;
     private ViewPager2 bannerViewPager;
     private TabLayout tabLayoutIndicator;
-
-    // Search Variables
     private EditText etSearch;
     private ImageView btnClear;
     private View layoutNoData;
 
-    // RecyclerView Variables
+    // --- RecyclerView Components ---
     private RecyclerView recyclerView;
     private ReportAdapter reportAdapter;
     private ArrayList<ReportItem> reportList;
 
+    // --- Auto-Slider Logic ---
     private Handler sliderHandler = new Handler(Looper.getMainLooper());
 
     @Nullable
@@ -53,77 +52,26 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         // ==========================================
-        // 1. RECYCLER VIEW & DATA SETUP
+        // 1. RECYCLERVIEW & DUMMY DATA SETUP
         // ==========================================
         recyclerView = view.findViewById(R.id.recyclerViewReports);
         layoutNoData = view.findViewById(R.id.layoutNoData);
-
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         reportList = new ArrayList<>();
 
-// 1. Bagpack
-        reportList.add(new ReportItem(
-                "Bagpack",
-                "Library, 2nd Floor",
-                "2 hrs ago",
-                "LOST",
-                R.drawable.bagpack,
-                "I lost my black backpack near the history section table. It contains a Dell laptop and two blue notebooks. Please contact if found."
-        ));
+        // Adding dummy data for demonstration
+        reportList.add(new ReportItem("Bagpack", "Library, 2nd Floor", "2 hrs ago", "LOST", R.drawable.bagpack, "Black backpack with a Dell laptop and notebooks."));
+        reportList.add(new ReportItem("Calculator", "Main Auditorium", "Yesterday", "FOUND", R.drawable.calculator, "Casio Scientific Calculator found on last row."));
+        reportList.add(new ReportItem("Keys", "Cafeteria Table 4", "3 hrs ago", "LOST", R.drawable.banner1, "Bunch of 3 keys with Spider-Man keychain."));
+        reportList.add(new ReportItem("ID Card", "Sports Complex", "Today", "FOUND", R.drawable.banner2, "Student ID belonging to 'Ali Khan'."));
+        reportList.add(new ReportItem("Blue Bottle", "Computer Lab", "1 hr ago", "LOST", R.drawable.bagpack, "Blue metal bottle with 'Coding' sticker."));
+        reportList.add(new ReportItem("Wallet", "Canteen", "Yesterday", "LOST", R.drawable.calculator, "Brown leather wallet with Driving License."));
 
-// 2. Calculator
-        reportList.add(new ReportItem(
-                "Calculator",
-                "Main Auditorium",
-                "Yesterday",
-                "FOUND",
-                R.drawable.calculator,
-                "Found a Casio Scientific Calculator on the last row seat. Please claim it from the admin office."
-        ));
-
-// 3. Keys
-        reportList.add(new ReportItem(
-                "Keys",
-                "Cafeteria Table 4",
-                "3 hrs ago",
-                "LOST",
-                R.drawable.banner1,
-                "A bunch of 3 keys with a Spider-Man keychain. Lost it while having lunch."
-        ));
-
-// 4. ID Card
-        reportList.add(new ReportItem(
-                "ID Card",
-                "Sports Complex",
-                "Today",
-                "FOUND",
-                R.drawable.banner2,
-                "Found a Student ID Card belonging to 'Ali Khan'. Currently submitted to the security guard."
-        ));
-
-// 5. Blue Bottle
-        reportList.add(new ReportItem(
-                "Blue Bottle",
-                "Computer Lab",
-                "1 hr ago",
-                "LOST",
-                R.drawable.bagpack,
-                "My blue metal water bottle was left on the desk in Lab 3. It has a sticker of 'Coding' on it."
-        ));
-
-// 6. Wallet
-        reportList.add(new ReportItem(
-                "Wallet",
-                "Canteen",
-                "Yesterday",
-                "LOST",
-                R.drawable.calculator,
-                "Brown leather wallet lost somewhere near the canteen. Contains my Driving License and some cash."
-        ));
         reportAdapter = new ReportAdapter(reportList);
         recyclerView.setAdapter(reportAdapter);
 
+        // Hide keyboard when scrolling the list
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
@@ -133,9 +81,8 @@ public class HomeFragment extends Fragment {
             }
         });
 
-
         // ==========================================
-        // 2. SEARCH BAR LOGIC
+        // 2. SEARCH FILTER LOGIC
         // ==========================================
         etSearch = view.findViewById(R.id.etSearch);
         btnClear = view.findViewById(R.id.btnClear);
@@ -147,22 +94,13 @@ public class HomeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String query = s.toString();
+                btnClear.setVisibility(query.length() > 0 ? View.VISIBLE : View.GONE);
 
-                if (query.length() > 0) {
-                    btnClear.setVisibility(View.VISIBLE);
-                } else {
-                    btnClear.setVisibility(View.GONE);
-                }
-
+                // Filter list and show 'No Data' layout if no results found
                 if (reportAdapter != null) {
                     boolean isListEmpty = reportAdapter.filterList(query);
-                    if (isListEmpty) {
-                        recyclerView.setVisibility(View.GONE);
-                        layoutNoData.setVisibility(View.VISIBLE);
-                    } else {
-                        recyclerView.setVisibility(View.VISIBLE);
-                        layoutNoData.setVisibility(View.GONE);
-                    }
+                    recyclerView.setVisibility(isListEmpty ? View.GONE : View.VISIBLE);
+                    layoutNoData.setVisibility(isListEmpty ? View.VISIBLE : View.GONE);
                 }
             }
 
@@ -175,28 +113,22 @@ public class HomeFragment extends Fragment {
             hideKeyboard(view);
         });
 
-
         // ==========================================
-        // 3. BUTTONS LOGIC (UPDATED WITH INTENTS)
+        // 3. NAVIGATION (REPORTING ACTIVITIES)
         // ==========================================
         btnReportLost = view.findViewById(R.id.btn_report_lost);
         btnReportFound = view.findViewById(R.id.btn_report_found);
 
-        // Jab "I Lost Something" par click ho -> ReportLostActivity khole
         btnReportLost.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), ReportLostActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(getActivity(), ReportLostActivity.class));
         });
 
-        // Jab "I Found Something" par click ho -> ReportFoundActivity khole
         btnReportFound.setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), ReportFoundActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(getActivity(), ReportFoundActivity.class));
         });
-
 
         // ==========================================
-        // 4. BANNER SLIDER LOGIC
+        // 4. BANNER SLIDER (VIEWPAGER2) LOGIC
         // ==========================================
         bannerViewPager = view.findViewById(R.id.bannerViewPager);
         tabLayoutIndicator = view.findViewById(R.id.tabLayoutIndicator);
@@ -209,15 +141,15 @@ public class HomeFragment extends Fragment {
         BannerAdapter bannerAdapter = new BannerAdapter(sliderImages);
         bannerViewPager.setAdapter(bannerAdapter);
 
-        new TabLayoutMediator(tabLayoutIndicator, bannerViewPager,
-                (tab, position) -> {}).attach();
+        // Link TabLayout with ViewPager2 for dot indicators
+        new TabLayoutMediator(tabLayoutIndicator, bannerViewPager, (tab, position) -> {}).attach();
 
         bannerViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 sliderHandler.removeCallbacks(sliderRunnable);
-                sliderHandler.postDelayed(sliderRunnable, 3000);
+                sliderHandler.postDelayed(sliderRunnable, 3000); // 3 seconds delay
             }
         });
 
@@ -232,19 +164,16 @@ public class HomeFragment extends Fragment {
         etSearch.clearFocus();
     }
 
+    // Auto-scroll logic for the banner
     private Runnable sliderRunnable = new Runnable() {
         @Override
         public void run() {
-            if (bannerViewPager != null) {
+            if (bannerViewPager != null && bannerViewPager.getAdapter() != null) {
                 int currentItem = bannerViewPager.getCurrentItem();
-                int totalItems = bannerViewPager.getAdapter() != null ? bannerViewPager.getAdapter().getItemCount() : 0;
+                int totalItems = bannerViewPager.getAdapter().getItemCount();
 
                 if (totalItems > 0) {
-                    if (currentItem < totalItems - 1) {
-                        bannerViewPager.setCurrentItem(currentItem + 1);
-                    } else {
-                        bannerViewPager.setCurrentItem(0);
-                    }
+                    bannerViewPager.setCurrentItem(currentItem < totalItems - 1 ? currentItem + 1 : 0);
                 }
             }
         }
