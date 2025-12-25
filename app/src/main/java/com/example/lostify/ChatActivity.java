@@ -9,29 +9,30 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
+        setContentView(R.layout.activity_chat); // Ensure isme FrameLayout ho
 
-        // Configure Toolbar and Back Button
+        String receiverId = getIntent().getStringExtra("receiverId"); // 🔴 Get ID
+        String receiverName = getIntent().getStringExtra("receiverName");
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-            // Set receiver name from Intent extras as the Toolbar title
-            String name = getIntent().getStringExtra("receiverName");
-            if (name != null) getSupportActionBar().setTitle(name);
+            if (receiverName != null) getSupportActionBar().setTitle(receiverName);
         }
 
-        // Initialize Fragment only if the activity is newly created
         if (savedInstanceState == null) {
             ChatFragment chatFragment = new ChatFragment();
 
-            // Load ChatFragment into the container
+            // 🔴 Pass ID to Fragment
+            Bundle args = new Bundle();
+            args.putString("receiverId", receiverId);
+            chatFragment.setArguments(args);
+
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.fragment_container, chatFragment);
             transaction.commit();
         }
     }
 
-    // Handle back button click on the Toolbar
     @Override
     public boolean onSupportNavigateUp() {
         finish();

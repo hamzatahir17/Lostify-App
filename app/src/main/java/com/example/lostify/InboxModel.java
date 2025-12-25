@@ -1,10 +1,8 @@
 package com.example.lostify;
 
 public class InboxModel {
-    String userId;
-    String userName;
-    String lastMessage;
-    String time;
+    public String userId, userName, lastMessage, time;
+    public long rawTimestamp;
 
     public InboxModel(String userId, String userName, String lastMessage, String time) {
         this.userId = userId;
@@ -13,6 +11,8 @@ public class InboxModel {
         this.time = time;
     }
 
+    public long getRawTimestamp() { return rawTimestamp; }
+    public void setRawTimestamp(long rawTimestamp) { this.rawTimestamp = rawTimestamp; }
     public String getUserId() { return userId; }
     public String getUserName() { return userName; }
     public String getLastMessage() { return lastMessage; }
