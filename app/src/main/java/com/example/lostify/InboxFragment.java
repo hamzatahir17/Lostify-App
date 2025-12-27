@@ -53,16 +53,14 @@ public class InboxFragment extends Fragment {
     }
 
     private void loadConversations() {
-        // Query sorted by timestamp descending
         db.collection("chats")
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 
                     for (DocumentChange dc : value.getDocumentChanges()) {
                         ChatModel chat = dc.getDocument().toObject(ChatModel.class);
 
-                        // Check if I am involved
                         if (chat.getSenderId().equals(currentUserId) || chat.getReceiverId().equals(currentUserId)) {
                             String partnerId = chat.getSenderId().equals(currentUserId) ?
                                     chat.getReceiverId() : chat.getSenderId();
@@ -70,53 +68,53 @@ public class InboxFragment extends Fragment {
                             String msg = chat.getMessageText();
                             String time = formatTime(chat.getTimestamp());
                             long ts = chat.getTimestamp();
+                            String senderId = chat.getSenderId();
+                            boolean isSeen = chat.isSeen();
 
-                            //  CASE: Document ADDED or MODIFIED
-                            if (dc.getType() == DocumentChange.Type.ADDED || dc.getType() == DocumentChange.Type.MODIFIED) {
+                            if (partnerMap.containsKey(partnerId)) {
+                                InboxModel existing = partnerMap.get(partnerId);
 
-                                if (partnerMap.containsKey(partnerId)) {
-                                    // 1. Purana data nikaal kar update karo
-                                    InboxModel existing = partnerMap.get(partnerId);
+                                if (ts >= existing.getRawTimestamp()) {
+                                    existing.lastMessage = msg;
+                                    existing.time = time;
+                                    existing.senderId = senderId;
+                                    existing.setRawTimestamp(ts);
+                                    existing.seen = isSeen;
 
-                                    // Update content only if this message is newer
-                                    if (ts >= existing.getRawTimestamp()) {
-                                        existing.lastMessage = msg;
-                                        existing.time = time;
-                                        existing.setRawTimestamp(ts);
-                                        sortAndRefresh();
-                                    }
-                                } else {
-                                    // 2. Naya user hai toh fetch karo
-                                    InboxModel newItem = new InboxModel(partnerId, "Loading...", msg, time);
-                                    newItem.setRawTimestamp(ts);
-
-                                    partnerMap.put(partnerId, newItem);
-                                    conversationList.add(newItem);
-
-                                    fetchPartnerName(partnerId, newItem);
+                                    sortAndRefresh();
                                 }
+                            } else {
+                                InboxModel newItem = new InboxModel(partnerId, "Loading...", msg, time, null, senderId, ts, isSeen);
+                                partnerMap.put(partnerId, newItem);
+                                conversationList.add(newItem);
+                                fetchPartnerDetails(partnerId, newItem);
                             }
                         }
                     }
                 });
     }
 
-    private void fetchPartnerName(String partnerId, InboxModel model) {
+    private void fetchPartnerDetails(String partnerId, InboxModel model) {
         db.collection("users").document(partnerId).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
                         model.userName = doc.getString("name");
+                        model.image = doc.getString("profileImage");
                     } else {
                         model.userName = "Unknown User";
+                        model.image = null;
                     }
-                    sortAndRefresh();
+                    if (getActivity() != null) {
+                        adapter.notifyDataSetChanged();
+                    }
                 });
     }
 
     private void sortAndRefresh() {
-        //  CRITICAL FIX: WhatsApp style sorting (Latest on Top)
-        Collections.sort(conversationList, (o1, o2) -> Long.compare(o2.getRawTimestamp(), o1.getRawTimestamp()));
-        adapter.notifyDataSetChanged();
+        if (getActivity() != null) {
+            Collections.sort(conversationList, (o1, o2) -> Long.compare(o2.getRawTimestamp(), o1.getRawTimestamp()));
+            getActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
+        }
     }
 
     private String formatTime(long timestamp) {

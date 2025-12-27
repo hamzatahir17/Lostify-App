@@ -2,32 +2,31 @@ package com.example.lostify;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.ArrayList;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.ViewHolder> {
 
     private Context context;
-    private List<InboxModel> originalList; // Search ke liye backup
-    private List<InboxModel> displayList;  // Jo screen par dikhega
+    private List<InboxModel> inboxList;
+    private String currentUserId;
 
-    public InboxAdapter(Context context, List<InboxModel> list) {
+    public InboxAdapter(Context context, List<InboxModel> inboxList) {
         this.context = context;
-        this.originalList = new ArrayList<>(list);
-        this.displayList = list;
-    }
-
-    // 🔴 NEW: Data update method
-    public void updateData(List<InboxModel> newList) {
-        this.originalList = new ArrayList<>(newList);
-        this.displayList = newList;
-        notifyDataSetChanged();
+        this.inboxList = inboxList;
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
     }
 
     @NonNull
@@ -39,49 +38,61 @@ public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        InboxModel model = displayList.get(position);
+        InboxModel model = inboxList.get(position);
 
-        holder.tvName.setText(model.getUserName());
-        holder.tvLastMsg.setText(model.getLastMessage());
-        holder.tvTime.setText(model.getTime());
+        holder.tvUserName.setText(model.userName);
+        holder.tvTime.setText(model.time);
 
-        // 🔴 CLICK ACTION: Open ChatActivity
+        if (model.senderId != null && model.senderId.equals(currentUserId)) {
+            holder.tvLastMessage.setText("You: " + model.lastMessage);
+            holder.tvLastMessage.setTypeface(null, Typeface.NORMAL);
+            holder.tvLastMessage.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+        } else {
+            holder.tvLastMessage.setText(model.lastMessage);
+
+            if (model.seen) {
+                holder.tvLastMessage.setTypeface(null, Typeface.NORMAL);
+                holder.tvLastMessage.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+            } else {
+                holder.tvLastMessage.setTypeface(null, Typeface.BOLD);
+                holder.tvLastMessage.setTextColor(context.getResources().getColor(android.R.color.black));
+            }
+        }
+
+        if (model.image != null && !model.image.isEmpty()) {
+            Glide.with(context)
+                    .load(model.image)
+                    .circleCrop()
+                    .placeholder(R.drawable.placeholder_loading)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .into(holder.imgProfile);
+        } else {
+            holder.imgProfile.setImageResource(R.drawable.placeholder_loading);
+        }
+
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, ChatActivity.class);
-            intent.putExtra("receiverId", model.getUserId()); // Other person's ID
-            intent.putExtra("receiverName", model.getUserName());
+            intent.putExtra("receiverId", model.partnerId);
+            intent.putExtra("receiverName", model.userName);
+            intent.putExtra("receiverImage", model.image);
             context.startActivity(intent);
         });
     }
 
     @Override
     public int getItemCount() {
-        return displayList.size();
+        return inboxList.size();
     }
 
-    // 🔴 SEARCH FILTER LOGIC
-    public void filterList(String query) {
-        if (query.isEmpty()) {
-            displayList = new ArrayList<>(originalList);
-        } else {
-            List<InboxModel> filtered = new ArrayList<>();
-            for (InboxModel item : originalList) {
-                if (item.getUserName().toLowerCase().contains(query.toLowerCase())) {
-                    filtered.add(item);
-                }
-            }
-            displayList = filtered;
-        }
-        notifyDataSetChanged();
-    }
-
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvLastMsg, tvTime;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgProfile;
+        TextView tvUserName, tvLastMessage, tvTime;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName = itemView.findViewById(R.id.tvUserName);
-            tvLastMsg = itemView.findViewById(R.id.tvLastMessage);
+            imgProfile = itemView.findViewById(R.id.imgProfile);
+            tvUserName = itemView.findViewById(R.id.tvUserName);
+            tvLastMessage = itemView.findViewById(R.id.tvLastMessage);
             tvTime = itemView.findViewById(R.id.tvTime);
         }
     }

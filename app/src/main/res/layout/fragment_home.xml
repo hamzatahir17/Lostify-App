@@ -215,12 +215,6 @@
                     android:textSize="18sp"
                     android:textStyle="bold"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="View All"
-                    android:textColor="#1565C0"
-                    android:textStyle="bold"/>
             </LinearLayout>
 
             <RelativeLayout

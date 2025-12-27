@@ -4,10 +4,12 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.firebase.auth.FirebaseAuth; // Import zaroori hai
+import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 import java.util.List;
 
 public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -18,11 +20,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context context;
     private List<ChatModel> messageList;
     private String currentUserId;
+    private String receiverProfileImage;
 
-    public ChatAdapter(Context context, List<ChatModel> messageList) {
+    public ChatAdapter(Context context, List<ChatModel> messageList, String receiverProfileImage) {
         this.context = context;
         this.messageList = messageList;
-        // Current User ID Firebase se lein
+        this.receiverProfileImage = receiverProfileImage;
         if(FirebaseAuth.getInstance().getCurrentUser() != null){
             this.currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
@@ -31,7 +34,6 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public int getItemViewType(int position) {
         ChatModel message = messageList.get(position);
-        // Agar Sender ID meri ID hai, to SENT view dikhao
         if (message.getSenderId() != null && message.getSenderId().equals(currentUserId)) {
             return VIEW_TYPE_SENT;
         } else {
@@ -54,10 +56,22 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ChatModel message = messageList.get(position);
+
         if (holder.getClass() == SentMessageViewHolder.class) {
             ((SentMessageViewHolder) holder).messageText.setText(message.getMessageText());
         } else {
-            ((ReceivedMessageViewHolder) holder).messageText.setText(message.getMessageText());
+            ReceivedMessageViewHolder receivedHolder = (ReceivedMessageViewHolder) holder;
+            receivedHolder.messageText.setText(message.getMessageText());
+
+            if (receiverProfileImage != null && !receiverProfileImage.isEmpty()) {
+                Glide.with(context)
+                        .load(receiverProfileImage)
+                        .circleCrop()
+                        .placeholder(R.drawable.placeholder_loading)
+                        .into(receivedHolder.profileImage);
+            } else {
+                receivedHolder.profileImage.setImageResource(R.drawable.placeholder_loading);
+            }
         }
     }
 
@@ -76,9 +90,12 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageText;
+        ImageView profileImage;
+
         ReceivedMessageViewHolder(View itemView) {
             super(itemView);
             messageText = itemView.findViewById(R.id.message_text_received);
+            profileImage = itemView.findViewById(R.id.chat_profile_image);
         }
     }
 }
