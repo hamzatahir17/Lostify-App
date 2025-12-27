@@ -4,10 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,9 +20,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        checkUserStatus();
+
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-        // Set the default screen to HomeFragment on first launch
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_layout, new HomeFragment())
@@ -34,14 +41,13 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new HomeFragment();
             }
             else if (itemId == R.id.nav_chat) {
-                // Navigating to InboxFragment to display the list of conversations
+
                 selectedFragment = new InboxFragment();
             }
             else if (itemId == R.id.nav_settings) {
                 selectedFragment = new SettingsFragment();
             }
 
-            // Execute the Fragment replacement
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.frame_layout, selectedFragment)
@@ -50,5 +56,38 @@ public class MainActivity extends AppCompatActivity {
 
             return true;
         });
+    }
+
+
+    private void checkUserStatus() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser == null) {
+
+            sendToLogin();
+        } else {
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users").document(currentUser.getUid()).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+
+                        if (!documentSnapshot.exists()) {
+                            auth.signOut();
+                            sendToLogin();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+
+                    });
+        }
+    }
+
+    private void sendToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginScreen.class);
+
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

@@ -24,12 +24,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,9 +46,13 @@ public class HomeFragment extends Fragment {
     private ReportAdapter reportAdapter;
     private ArrayList<ReportModel> masterList = new ArrayList<>();
 
-    private FirebaseFirestore db;
-    private boolean isLoading = false;
+    private List<ReportModel> lostList = new ArrayList<>();
+    private List<ReportModel> foundList = new ArrayList<>();
 
+    private ListenerRegistration lostListener;
+    private ListenerRegistration foundListener;
+
+    private FirebaseFirestore db;
     private Handler sliderHandler = new Handler(Looper.getMainLooper());
 
     @Nullable
@@ -65,6 +67,8 @@ public class HomeFragment extends Fragment {
         setupSearchLogic();
         setupBanner();
         setupClickListeners();
+
+        startRealtimeUpdates();
 
         return view;
     }
@@ -119,18 +123,15 @@ public class HomeFragment extends Fragment {
             public void afterTextChanged(Editable s) {}
         });
 
-        etSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                        actionId == EditorInfo.IME_ACTION_DONE ||
-                        (event != null && event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+        etSearch.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
+                    actionId == EditorInfo.IME_ACTION_DONE ||
+                    (event != null && event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
 
-                    hideKeyboard();
-                    return true;
-                }
-                return false;
+                hideKeyboard();
+                return true;
             }
+            return false;
         });
 
         btnClear.setOnClickListener(v -> {
@@ -174,41 +175,46 @@ public class HomeFragment extends Fragment {
         btnReportFound.setOnClickListener(v -> startActivity(new Intent(getActivity(), ReportFoundActivity.class)));
     }
 
-    private void fetchDataFromFirestore() {
-        if (isLoading) return;
-        isLoading = true;
+    private void startRealtimeUpdates() {
+        if (lostListener != null && foundListener != null) return;
 
-        Task<QuerySnapshot> lostTask = db.collection("LostItems").get();
-        Task<QuerySnapshot> foundTask = db.collection("FoundItems").get();
-
-        Tasks.whenAllSuccess(lostTask, foundTask).addOnSuccessListener(results -> {
-            ArrayList<ReportModel> freshList = new ArrayList<>();
-
-            QuerySnapshot lostSnapshot = (QuerySnapshot) results.get(0);
-            if (!lostSnapshot.isEmpty()) {
-                freshList.addAll(lostSnapshot.toObjects(ReportModel.class));
-            }
-
-            QuerySnapshot foundSnapshot = (QuerySnapshot) results.get(1);
-            if (!foundSnapshot.isEmpty()) {
-                freshList.addAll(foundSnapshot.toObjects(ReportModel.class));
-            }
-
-            Collections.sort(freshList, (o1, o2) -> {
-                String date1 = o1.getDate() + " " + o1.getTime();
-                String date2 = o2.getDate() + " " + o2.getTime();
-                return date2.compareTo(date1);
-            });
-
-            masterList.clear();
-            masterList.addAll(freshList);
-            reportAdapter.updateData(masterList);
-            updateNoDataView(masterList.isEmpty());
-
-            isLoading = false;
-        }).addOnFailureListener(e -> {
-            isLoading = false;
+        lostListener = db.collection("LostItems").addSnapshotListener((value, error) -> {
+            if (error != null || value == null) return;
+            lostList.clear();
+            lostList.addAll(value.toObjects(ReportModel.class));
+            mergeAndSortLists();
         });
+
+        foundListener = db.collection("FoundItems").addSnapshotListener((value, error) -> {
+            if (error != null || value == null) return;
+            foundList.clear();
+            foundList.addAll(value.toObjects(ReportModel.class));
+            mergeAndSortLists();
+        });
+    }
+
+    private void mergeAndSortLists() {
+        masterList.clear();
+        masterList.addAll(lostList);
+        masterList.addAll(foundList);
+
+        Collections.sort(masterList, (o1, o2) -> {
+            String date1 = o1.getDate() + " " + o1.getTime();
+            String date2 = o2.getDate() + " " + o2.getTime();
+            return date2.compareTo(date1);
+        });
+
+        reportAdapter.updateData(masterList);
+        updateNoDataView(masterList.isEmpty());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (lostListener != null) lostListener.remove();
+        if (foundListener != null) foundListener.remove();
+        lostListener = null;
+        foundListener = null;
     }
 
     private void updateNoDataView(boolean isEmpty) {
@@ -242,12 +248,6 @@ public class HomeFragment extends Fragment {
     };
 
     @Override
-    public void onPause() {
-        super.onPause();
-        sliderHandler.removeCallbacks(sliderRunnable);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         sliderHandler.postDelayed(sliderRunnable, 3000);
@@ -256,7 +256,11 @@ public class HomeFragment extends Fragment {
             etSearch.setText("");
             etSearch.clearFocus();
         }
+    }
 
-        fetchDataFromFirestore();
+    @Override
+    public void onPause() {
+        super.onPause();
+        sliderHandler.removeCallbacks(sliderRunnable);
     }
 }
