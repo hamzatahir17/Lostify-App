@@ -87,13 +87,17 @@
                 android:textColor="#000000"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
+
             <EditText
                 android:id="@+id/etDescription"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="120dp"
                 android:background="@drawable/bg_edittext"
                 android:padding="12dp"
-                android:gravity="top"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:scrollbars="vertical"
+                android:overScrollMode="always"
                 android:hint="Describe the item you found..."
                 android:layout_marginBottom="16dp"/>
 

@@ -7,41 +7,41 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChatFragment extends Fragment {
 
-    RecyclerView chatRecyclerView;
-    EditText messageEditText;
-    ImageView sendButton;
-
-    ChatAdapter chatAdapter;
-    List<ChatModel> messageList;
-
+    private RecyclerView chatRecyclerView;
+    private EditText messageEditText;
+    private ImageView sendButton;
+    private ChatAdapter chatAdapter;
+    private List<ChatModel> messageList;
     private String currentUserId;
-    private String receiverId; // 🔴 Jisko message bhejna hai
+    private String receiverId;
+    private String receiverImage;
     private FirebaseFirestore db;
+
+
+    private ListenerRegistration seenListener;
 
     public ChatFragment() { }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Activity se Receiver ID receive karein
         if (getArguments() != null) {
             receiverId = getArguments().getString("receiverId");
+            receiverImage = getArguments().getString("receiverImage");
         }
         return inflater.inflate(R.layout.fragment_chat, container, false);
     }
@@ -60,14 +60,13 @@ public class ChatFragment extends Fragment {
         sendButton = view.findViewById(R.id.send_button);
 
         messageList = new ArrayList<>();
-        chatAdapter = new ChatAdapter(getContext(), messageList); // Adapter setup
+        chatAdapter = new ChatAdapter(getContext(), messageList, receiverImage);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        layoutManager.setStackFromEnd(true); // Latest message neeche dikhega
+        layoutManager.setStackFromEnd(true);
         chatRecyclerView.setLayoutManager(layoutManager);
         chatRecyclerView.setAdapter(chatAdapter);
 
-        // 🔴 Send Button Click
         sendButton.setOnClickListener(v -> {
             String messageText = messageEditText.getText().toString().trim();
             if (!messageText.isEmpty()) {
@@ -75,23 +74,22 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        // 🔴 Listen for Messages
         listenForMessages();
     }
 
     private void sendMessage(String messageText) {
         long timestamp = System.currentTimeMillis();
-        // Create Object with Receiver ID
-        ChatModel newMessage = new ChatModel(currentUserId, receiverId, messageText, timestamp);
+        ChatModel newMessage = new ChatModel(currentUserId, receiverId, messageText, timestamp, false);
 
         db.collection("chats").add(newMessage)
-                .addOnSuccessListener(doc -> messageEditText.setText("")) // Clear Box
+                .addOnSuccessListener(doc -> messageEditText.setText(""))
                 .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to send", Toast.LENGTH_SHORT).show());
     }
 
     private void listenForMessages() {
-        db.collection("chats")
-                .orderBy("timestamp", Query.Direction.ASCENDING) // Time ke hisaab se sort
+
+        seenListener = db.collection("chats")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null || value == null) return;
 
@@ -99,16 +97,29 @@ public class ChatFragment extends Fragment {
                         if (dc.getType() == DocumentChange.Type.ADDED) {
                             ChatModel m = dc.getDocument().toObject(ChatModel.class);
 
-                            // 🔴 Filter Logic: Kya ye message mere aur uske beech hai?
                             if ((m.getSenderId().equals(currentUserId) && m.getReceiverId().equals(receiverId)) ||
                                     (m.getSenderId().equals(receiverId) && m.getReceiverId().equals(currentUserId))) {
 
                                 messageList.add(m);
                                 chatAdapter.notifyItemInserted(messageList.size() - 1);
                                 chatRecyclerView.scrollToPosition(messageList.size() - 1);
+
+
+                                if (m.getSenderId().equals(receiverId) && !m.isSeen()) {
+                                    dc.getDocument().getReference().update("seen", true);
+                                }
                             }
                         }
                     }
                 });
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (seenListener != null) {
+            seenListener.remove();
+        }
     }
 }
