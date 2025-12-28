@@ -8,7 +8,6 @@
 - **💬 Live Chat:** Chat with the finder/owner with 'Seen' status support.
 - **🔍 Search:** Filter items easily.
 - **🔐 Secure Auth:** Login/Signup via Firebase.
-- **📱 Modern UI:** Clean interface with Dark/Light mode support.
 
 ## 🛠️ Tech Stack
 - **Language:** Java
