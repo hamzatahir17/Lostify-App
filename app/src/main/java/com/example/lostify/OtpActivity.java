@@ -45,6 +45,7 @@ public class OtpActivity extends AppCompatActivity {
         btnVerify = findViewById(R.id.btnVerifyOTP);
         tvResend = findViewById(R.id.tvResend);
 
+        // Pichli screen se data receive karein
         name = getIntent().getStringExtra("userName");
         email = getIntent().getStringExtra("userEmail");
         pass = getIntent().getStringExtra("userPass");
@@ -59,6 +60,7 @@ public class OtpActivity extends AppCompatActivity {
                     otp3.getText().toString() + otp4.getText().toString();
 
             if (enteredCode.equals(generatedOTP)) {
+                // Agar OTP sahi hai to Firebase operation perform karein
                 performAuth();
             } else {
                 Toast.makeText(this, "Invalid code", Toast.LENGTH_SHORT).show();
@@ -78,8 +80,10 @@ public class OtpActivity extends AppCompatActivity {
 
     private void sendEmail(String otp) {
         new Thread(() -> {
+
             final String username = BuildConfig.EMAIL_USERNAME;
             final String password = BuildConfig.EMAIL_PASSWORD;
+
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
@@ -100,20 +104,24 @@ public class OtpActivity extends AppCompatActivity {
                 message.setSubject("Lostify - Verification Code");
                 message.setText("Your verification code is: " + otp);
                 Transport.send(message);
-                runOnUiThread(() -> Toast.makeText(this, "OTP sent to email", Toast.LENGTH_SHORT).show());
+                runOnUiThread(() -> Toast.makeText(this, "OTP sent to " + email, Toast.LENGTH_SHORT).show());
             } catch (MessagingException e) {
                 e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Failed to send email", Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
 
     private void performAuth() {
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
         if (isLogin) {
+            // Login Logic
             mAuth.signInWithEmailAndPassword(email, pass)
                     .addOnSuccessListener(authResult -> navigateMain())
-                    .addOnFailureListener(e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+                    .addOnFailureListener(e -> Toast.makeText(this, "Login Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
         } else {
+            // Signup Logic
             mAuth.createUserWithEmailAndPassword(email, pass)
                     .addOnSuccessListener(authResult -> {
                         String uid = authResult.getUser().getUid();
@@ -122,10 +130,11 @@ public class OtpActivity extends AppCompatActivity {
                         user.put("name", name);
                         user.put("email", email);
                         user.put("createdAt", System.currentTimeMillis());
+
                         FirebaseFirestore.getInstance().collection("users").document(uid).set(user)
                                 .addOnSuccessListener(aVoid -> navigateMain());
                     })
-                    .addOnFailureListener(e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show());
+                    .addOnFailureListener(e -> Toast.makeText(this, "Signup Failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
 

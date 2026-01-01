@@ -21,6 +21,7 @@ public class LoginScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_screen);
 
+
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             startActivity(new Intent(LoginScreen.this, MainActivity.class));
             finish();
@@ -40,6 +41,7 @@ public class LoginScreen extends AppCompatActivity {
                 Toast.makeText(this, "Required!", Toast.LENGTH_SHORT).show();
                 return;
             }
+
 
             Intent intent = new Intent(LoginScreen.this, OtpActivity.class);
             intent.putExtra("userEmail", email);

@@ -41,6 +41,7 @@ public class SignupActivity extends AppCompatActivity {
                 return;
             }
 
+
             Intent intent = new Intent(SignupActivity.this, OtpActivity.class);
             intent.putExtra("userName", name);
             intent.putExtra("userEmail", email);
