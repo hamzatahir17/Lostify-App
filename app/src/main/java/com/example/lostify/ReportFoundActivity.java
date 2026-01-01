@@ -1,5 +1,6 @@
 package com.example.lostify;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -14,27 +15,32 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
-import android.annotation.SuppressLint;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
-import com.example.lostify.BuildConfig;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-
+import org.json.JSONObject;
+import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ReportFoundActivity extends AppCompatActivity {
 
@@ -44,8 +50,9 @@ public class ReportFoundActivity extends AppCompatActivity {
     private Button btnUploadImage, btnSubmit;
     private Uri imageUri;
     private ProgressDialog progressDialog;
+    private RequestQueue requestQueue;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // Cloudinary Config
     private static final String CLOUD_NAME = BuildConfig.CLOUDINARY_CLOUD_NAME;
     private static final String API_KEY = BuildConfig.CLOUDINARY_API_KEY;
     private static final String API_SECRET = BuildConfig.CLOUDINARY_API_SECRET;
@@ -59,12 +66,12 @@ public class ReportFoundActivity extends AppCompatActivity {
         initViews();
         setupPickers();
         setupDescriptionScroll();
-        setupPhotoPicker(); //  Modern Photo Picker Setup
+        setupPhotoPicker();
 
-        // Back Button
+        requestQueue = Volley.newRequestQueue(this);
+
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Submit Button
         btnSubmit.setOnClickListener(v -> {
             if (validateFields()) {
                 uploadToCloudinary();
@@ -80,7 +87,6 @@ public class ReportFoundActivity extends AppCompatActivity {
             config.put("api_secret", API_SECRET);
             MediaManager.init(this, config);
         } catch (IllegalStateException e) {
-            // Already initialized, safe to ignore
         }
     }
 
@@ -99,7 +105,6 @@ public class ReportFoundActivity extends AppCompatActivity {
         progressDialog.setMessage("Uploading Report...");
         progressDialog.setCancelable(false);
 
-        // Setup Spinner
         String[] categories = {
                 "Select Category", "Mobile Phones", "Laptops/Tablets", "Electronics (Other)",
                 "Wallet/Purse", "Keys", "Documents/IDs", "Bags/Luggage", "Clothing/Shoes",
@@ -110,7 +115,6 @@ public class ReportFoundActivity extends AppCompatActivity {
     }
 
     private void setupPhotoPicker() {
-        // Using PickVisualMedia (Android 14 Compatible)
         ActivityResultLauncher<PickVisualMediaRequest> pickMedia = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
                 uri -> {
@@ -119,13 +123,11 @@ public class ReportFoundActivity extends AppCompatActivity {
                         ivSelectedImage.setVisibility(View.VISIBLE);
                         btnUploadImage.setText("Change Image");
 
-                        //  Using Glide for Memory Safety
                         Glide.with(this)
                                 .load(uri)
-                                .transform(new CenterCrop(), new RoundedCorners(16)) // Thoda style add kiya
+                                .transform(new CenterCrop(), new RoundedCorners(16))
                                 .into(ivSelectedImage);
 
-                        // Persist Permission (Safety for Android 11+)
                         try {
                             getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         } catch (Exception e) {
@@ -143,7 +145,6 @@ public class ReportFoundActivity extends AppCompatActivity {
     }
     @SuppressLint("ClickableViewAccessibility")
     private void setupDescriptionScroll() {
-        // Allows scrolling inside the description box without scrolling the whole page
         etDescription.setOnTouchListener((v, event) -> {
             if (etDescription.hasFocus()) {
                 v.getParent().requestDisallowInterceptTouchEvent(true);
@@ -219,6 +220,7 @@ public class ReportFoundActivity extends AppCompatActivity {
         db.collection("FoundItems").add(report)
                 .addOnSuccessListener(doc -> {
                     progressDialog.dismiss();
+                    sendTopicNotification(report);
                     Toast.makeText(this, "Report Submitted Successfully!", Toast.LENGTH_SHORT).show();
                     finish();
                 })
@@ -226,5 +228,63 @@ public class ReportFoundActivity extends AppCompatActivity {
                     progressDialog.dismiss();
                     Toast.makeText(this, "Failed to submit: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void sendTopicNotification(ReportModel report) {
+        executor.execute(() -> {
+            try {
+                InputStream stream = ReportFoundActivity.this.getAssets().open("service-account.json");
+                GoogleCredentials credentials = GoogleCredentials.fromStream(stream)
+                        .createScoped(Collections.singletonList("https://www.googleapis.com/auth/firebase.messaging"));
+                credentials.refreshIfExpired();
+                String accessToken = credentials.getAccessToken().getTokenValue();
+
+                JSONObject json = new JSONObject();
+                JSONObject messageObj = new JSONObject();
+                JSONObject dataObj = new JSONObject();
+
+                dataObj.put("title", "Found Alert!");
+                dataObj.put("body", "FOUND: " + report.getItemName() + " near " + report.getLocation());
+                dataObj.put("type", "report_found");
+
+                dataObj.put("itemName", report.getItemName());
+                dataObj.put("location", report.getLocation());
+                dataObj.put("date", report.getDate());
+                dataObj.put("time", report.getTime());
+                dataObj.put("description", report.getDescription());
+                dataObj.put("category", report.getCategory());
+                dataObj.put("imageUrl", report.getImageUrl());
+                dataObj.put("userId", report.getUserId());
+
+                messageObj.put("topic", "all_reports");
+                messageObj.put("data", dataObj);
+
+                json.put("message", messageObj);
+
+                runOnUiThread(() -> sendVolleyRequest(json, accessToken));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void sendVolleyRequest(JSONObject jsonBody, String accessToken) {
+        String projectId = "lostify-2e249";
+        String url = "https://fcm.googleapis.com/v1/projects/" + projectId + "/messages:send";
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
+                response -> {},
+                error -> {}
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer " + accessToken);
+                return headers;
+            }
+        };
+        requestQueue.add(request);
     }
 }

@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Base.Theme.Lostify" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Lostify" parent="Theme.Material3.Light.NoActionBar">
 
         <item name="android:statusBarColor">#1565C0</item>
         <item name="android:windowLightStatusBar">false</item>
@@ -8,9 +8,7 @@
         <item name="colorOnPrimary">#FFFFFF</item>
 
         <item name="colorSecondaryContainer">#E3F2FD</item>
-
         <item name="colorOnSecondaryContainer">#1565C0</item>
-
 
         <item name="android:navigationBarColor">#FFFFFF</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>

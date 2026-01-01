@@ -16,25 +16,32 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-
+import org.json.JSONObject;
+import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ReportLostActivity extends AppCompatActivity {
 
@@ -48,8 +55,9 @@ public class ReportLostActivity extends AppCompatActivity {
 
     private Uri imageUri;
     private ProgressDialog progressDialog;
+    private RequestQueue requestQueue;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-    // Keys secured via BuildConfig
     private static final String CLOUD_NAME = BuildConfig.CLOUDINARY_CLOUD_NAME;
     private static final String API_KEY = BuildConfig.CLOUDINARY_API_KEY;
     private static final String API_SECRET = BuildConfig.CLOUDINARY_API_SECRET;
@@ -63,23 +71,20 @@ public class ReportLostActivity extends AppCompatActivity {
         initViews();
         setupPickers();
         setupDescriptionScroll();
-        setupPhotoPicker(); //  Modern Picker Logic
+        setupPhotoPicker();
 
-        // Database Init
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        requestQueue = Volley.newRequestQueue(this);
 
-        // Back Button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // Submit Button
         btnSubmit.setOnClickListener(v -> {
             if (validateFields()) {
                 if (imageUri != null) {
                     uploadToCloudinary(imageUri);
                 } else {
-                    // Agar bina image ke allow karna hai (Optional)
-                    saveDataToFirestore(null);
+                    saveDataToFirestore("");
                 }
             }
         });
@@ -93,7 +98,6 @@ public class ReportLostActivity extends AppCompatActivity {
             config.put("api_secret", API_SECRET);
             MediaManager.init(this, config);
         } catch (IllegalStateException e) {
-            // Already initialized
         }
     }
 
@@ -112,7 +116,6 @@ public class ReportLostActivity extends AppCompatActivity {
         progressDialog.setMessage("Submitting Report...");
         progressDialog.setCancelable(false);
 
-        // Setup Spinner
         String[] categories = {
                 "Select Category", "Mobile Phones", "Laptops/Tablets", "Electronics (Other)",
                 "Wallet/Purse", "Keys", "Documents/IDs", "Bags/Luggage", "Clothing/Shoes",
@@ -122,7 +125,6 @@ public class ReportLostActivity extends AppCompatActivity {
     }
 
     private void setupPhotoPicker() {
-        //  PRO: Android Photo Picker (No Permission Crash)
         ActivityResultLauncher<PickVisualMediaRequest> pickMedia = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
                 uri -> {
@@ -131,13 +133,11 @@ public class ReportLostActivity extends AppCompatActivity {
                         ivSelectedImage.setVisibility(View.VISIBLE);
                         btnUploadImage.setText("Change Image");
 
-                        //  PRO: Glide handles large bitmaps safely
                         Glide.with(this)
                                 .load(uri)
                                 .transform(new CenterCrop(), new RoundedCorners(16))
                                 .into(ivSelectedImage);
 
-                        // Persist Permission (Safety check)
                         try {
                             getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         } catch (Exception e) {
@@ -191,13 +191,6 @@ public class ReportLostActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(etLocation.getText())) { etLocation.setError("Required"); return false; }
         if (TextUtils.isEmpty(etDate.getText())) { Toast.makeText(this, "Select Date", Toast.LENGTH_SHORT).show(); return false; }
         if (spinnerCategory.getSelectedItemPosition() == 0) { Toast.makeText(this, "Select Category", Toast.LENGTH_SHORT).show(); return false; }
-
-
-        if (imageUri == null) {
-            Toast.makeText(this, "Please attach an image for better reach", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
         return true;
     }
 
@@ -231,17 +224,77 @@ public class ReportLostActivity extends AppCompatActivity {
                 etDate.getText().toString(),
                 etTime.getText().toString(),
                 imageUrl,
-                "LOST" // Status set to LOST
+                "LOST"
         );
 
         db.collection("LostItems").add(report).addOnCompleteListener(task -> {
             progressDialog.dismiss();
             if (task.isSuccessful()) {
+                sendTopicNotification(report);
                 Toast.makeText(this, "Report Submitted Successfully!", Toast.LENGTH_SHORT).show();
                 finish();
             } else {
                 Toast.makeText(this, "Failed to submit. Try again.", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void sendTopicNotification(ReportModel report) {
+        executor.execute(() -> {
+            try {
+                InputStream stream = ReportLostActivity.this.getAssets().open("service-account.json");
+                GoogleCredentials credentials = GoogleCredentials.fromStream(stream)
+                        .createScoped(Collections.singletonList("https://www.googleapis.com/auth/firebase.messaging"));
+                credentials.refreshIfExpired();
+                String accessToken = credentials.getAccessToken().getTokenValue();
+
+                JSONObject json = new JSONObject();
+                JSONObject messageObj = new JSONObject();
+                JSONObject dataObj = new JSONObject();
+
+                dataObj.put("title", "Lost Alert!");
+                dataObj.put("body", "LOST: " + report.getItemName() + " near " + report.getLocation());
+                dataObj.put("type", "report_lost");
+
+                // Pack complete data for Detail Activity
+                dataObj.put("itemName", report.getItemName());
+                dataObj.put("location", report.getLocation());
+                dataObj.put("date", report.getDate());
+                dataObj.put("time", report.getTime());
+                dataObj.put("description", report.getDescription());
+                dataObj.put("category", report.getCategory());
+                dataObj.put("imageUrl", report.getImageUrl());
+                dataObj.put("userId", report.getUserId());
+
+                messageObj.put("topic", "all_reports");
+                messageObj.put("data", dataObj);
+
+                json.put("message", messageObj);
+
+                runOnUiThread(() -> sendVolleyRequest(json, accessToken));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void sendVolleyRequest(JSONObject jsonBody, String accessToken) {
+        String projectId = "lostify-2e249";
+        String url = "https://fcm.googleapis.com/v1/projects/" + projectId + "/messages:send";
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
+                response -> {},
+                error -> {}
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                headers.put("Authorization", "Bearer " + accessToken);
+                return headers;
+            }
+        };
+        requestQueue.add(request);
     }
 }

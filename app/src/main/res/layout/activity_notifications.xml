@@ -58,9 +58,10 @@
             android:padding="16dp">
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchFound"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Found Items Alert"
+                android:text="Reports Alert"
                 android:textColor="#000000"
                 android:textSize="16sp"
                 android:checked="true"
@@ -75,6 +76,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchChat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Chat Messages"
@@ -82,8 +84,7 @@
                 android:textSize="16sp"
                 android:checked="true"
                 android:thumbTint="#FFFFFF"
-                android:trackTint="#1565C0"
-                />
+                android:trackTint="#1565C0" />
 
             <View
                 android:layout_width="match_parent"
@@ -93,6 +94,7 @@
                 android:layout_marginBottom="8dp"/>
 
             <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switchUpdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="App Updates"

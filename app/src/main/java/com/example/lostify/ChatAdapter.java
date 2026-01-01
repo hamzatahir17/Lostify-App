@@ -1,6 +1,7 @@
 package com.example.lostify;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,13 +23,17 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private String currentUserId;
     private String receiverProfileImage;
 
-    public ChatAdapter(Context context, List<ChatModel> messageList, String receiverProfileImage) {
+    public ChatAdapter(Context context, List<ChatModel> messageList) {
         this.context = context;
         this.messageList = messageList;
-        this.receiverProfileImage = receiverProfileImage;
         if(FirebaseAuth.getInstance().getCurrentUser() != null){
             this.currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
+    }
+
+    public void setReceiverProfileImage(String imageUrl) {
+        this.receiverProfileImage = imageUrl;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -58,10 +63,24 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ChatModel message = messageList.get(position);
 
         if (holder.getClass() == SentMessageViewHolder.class) {
-            ((SentMessageViewHolder) holder).messageText.setText(message.getMessageText());
+            SentMessageViewHolder viewHolder = (SentMessageViewHolder) holder;
+            viewHolder.messageText.setText(message.getMessageText());
+
+            if (message.isSeen()) {
+                viewHolder.messageText.setTypeface(null, Typeface.NORMAL);
+            } else {
+                viewHolder.messageText.setTypeface(null, Typeface.BOLD);
+            }
+
         } else {
             ReceivedMessageViewHolder receivedHolder = (ReceivedMessageViewHolder) holder;
             receivedHolder.messageText.setText(message.getMessageText());
+
+            if (message.isSeen()) {
+                receivedHolder.messageText.setTypeface(null, Typeface.NORMAL);
+            } else {
+                receivedHolder.messageText.setTypeface(null, Typeface.BOLD);
+            }
 
             if (receiverProfileImage != null && !receiverProfileImage.isEmpty()) {
                 Glide.with(context)

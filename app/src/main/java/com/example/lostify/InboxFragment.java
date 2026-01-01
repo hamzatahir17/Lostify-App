@@ -1,9 +1,13 @@
 package com.example.lostify;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -26,10 +30,17 @@ public class InboxFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private InboxAdapter adapter;
+
+
     private List<InboxModel> conversationList = new ArrayList<>();
+
+
+    private List<InboxModel> masterList = new ArrayList<>();
+
     private Map<String, InboxModel> partnerMap = new HashMap<>();
     private FirebaseFirestore db;
     private String currentUserId;
+    private EditText etSearch;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -45,11 +56,14 @@ public class InboxFragment extends Fragment {
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
 
         recyclerView = view.findViewById(R.id.recyclerInbox);
+        etSearch = view.findViewById(R.id.etSearchChats);
+
         adapter = new InboxAdapter(getContext(), conversationList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
         loadConversations();
+        setupSearchListener();
     }
 
     private void loadConversations() {
@@ -86,7 +100,11 @@ public class InboxFragment extends Fragment {
                             } else {
                                 InboxModel newItem = new InboxModel(partnerId, "Loading...", msg, time, null, senderId, ts, isSeen);
                                 partnerMap.put(partnerId, newItem);
+
+
                                 conversationList.add(newItem);
+                                masterList.add(newItem);
+
                                 fetchPartnerDetails(partnerId, newItem);
                             }
                         }
@@ -104,16 +122,60 @@ public class InboxFragment extends Fragment {
                         model.userName = "Unknown User";
                         model.image = null;
                     }
-                    if (getActivity() != null) {
-                        adapter.notifyDataSetChanged();
-                    }
+
+
+                    sortAndRefresh();
                 });
+    }
+
+
+    private void setupSearchListener() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void filter(String text) {
+        ArrayList<InboxModel> filteredList = new ArrayList<>();
+
+        for (InboxModel item : masterList) {
+
+            if (item.userName.toLowerCase().contains(text.toLowerCase())) {
+                filteredList.add(item);
+            }
+        }
+
+        adapter.filterList(filteredList);
     }
 
     private void sortAndRefresh() {
         if (getActivity() != null) {
-            Collections.sort(conversationList, (o1, o2) -> Long.compare(o2.getRawTimestamp(), o1.getRawTimestamp()));
-            getActivity().runOnUiThread(() -> adapter.notifyDataSetChanged());
+
+            Collections.sort(masterList, (o1, o2) -> Long.compare(o2.getRawTimestamp(), o1.getRawTimestamp()));
+
+
+            String searchText = etSearch.getText().toString();
+
+            getActivity().runOnUiThread(() -> {
+                if (searchText.isEmpty()) {
+
+                    conversationList.clear();
+                    conversationList.addAll(masterList);
+                    adapter.filterList(conversationList);
+                } else {
+
+                    filter(searchText);
+                }
+            });
         }
     }
 

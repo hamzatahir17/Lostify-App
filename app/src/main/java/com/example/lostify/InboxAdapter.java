@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import java.util.ArrayList;
 import java.util.List;
 
 public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.ViewHolder> {
@@ -82,6 +83,12 @@ public class InboxAdapter extends RecyclerView.Adapter<InboxAdapter.ViewHolder> 
     @Override
     public int getItemCount() {
         return inboxList.size();
+    }
+
+
+    public void filterList(List<InboxModel> filteredList) {
+        this.inboxList = filteredList;
+        notifyDataSetChanged();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

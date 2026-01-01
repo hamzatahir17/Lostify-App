@@ -10,10 +10,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.google.android.material.button.MaterialButton;
@@ -23,10 +21,8 @@ import com.google.firebase.auth.FirebaseUser;
 public class ItemDetailActivity extends AppCompatActivity {
 
     private ImageView detailImage;
-    private TextView tvTitle, tvStatus, tvLocation, tvTime, tvDescription, tvCategory;
+    private TextView tvTitle, tvStatus, tvLocation, tvTime, tvDescription;
     private MaterialButton btnContact;
-
-
     private String imageUrl, ownerId, itemTitle;
 
     @Override
@@ -57,35 +53,28 @@ public class ItemDetailActivity extends AppCompatActivity {
         tvLocation = findViewById(R.id.tvDetailLocation);
         tvTime = findViewById(R.id.tvDetailDate);
         tvDescription = findViewById(R.id.tvDetailDescription);
-        // tvCategory = findViewById(R.id.tvDetailCategory);
         btnContact = findViewById(R.id.btnContact);
     }
 
     private void getAndSetData() {
-
         itemTitle = getIntent().getStringExtra("ITEM_NAME");
         String location = getIntent().getStringExtra("ITEM_LOCATION");
         String date = getIntent().getStringExtra("ITEM_DATE");
         String time = getIntent().getStringExtra("ITEM_TIME");
         String status = getIntent().getStringExtra("ITEM_STATUS");
         String description = getIntent().getStringExtra("DESCRIPTION");
-        String category = getIntent().getStringExtra("CATEGORY");
         imageUrl = getIntent().getStringExtra("ITEM_IMAGE_URL");
         ownerId = getIntent().getStringExtra("USER_ID");
 
-
         tvTitle.setText(itemTitle);
         tvLocation.setText("📍 " + location);
-
 
         String dateTimeDisplay = "📅 " + date;
         if(time != null && !time.isEmpty()) {
             dateTimeDisplay += " | " + time;
         }
         tvTime.setText(dateTimeDisplay);
-
         tvDescription.setText(description);
-
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
             Glide.with(this)
@@ -98,28 +87,25 @@ public class ItemDetailActivity extends AppCompatActivity {
             detailImage.setImageResource(R.drawable.placeholder_loading);
         }
 
-
         if (status != null && status.equalsIgnoreCase("FOUND")) {
             tvStatus.setText("FOUND");
-            tvStatus.setTextColor(Color.parseColor("#388E3C")); // Green
+            tvStatus.setTextColor(Color.parseColor("#388E3C"));
             tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9"));
             btnContact.setText("Claim Item");
         } else {
             tvStatus.setText("LOST");
-            tvStatus.setTextColor(Color.parseColor("#D32F2F")); // Red
+            tvStatus.setTextColor(Color.parseColor("#D32F2F"));
             tvStatus.setBackgroundColor(Color.parseColor("#FFEBEE"));
             btnContact.setText("Contact Owner");
         }
     }
 
     private void setupClickListeners() {
-
         detailImage.setOnClickListener(v -> {
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 showFullImageDialog(imageUrl);
             }
         });
-
 
         btnContact.setOnClickListener(v -> {
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -139,11 +125,12 @@ public class ItemDetailActivity extends AppCompatActivity {
                 return;
             }
 
-            // Start Chat
-            Intent intent = new Intent(ItemDetailActivity.this, ChatActivity.class);
+            Intent intent = new Intent(ItemDetailActivity.this, MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("navigate_to_chat", true);
             intent.putExtra("receiverId", ownerId);
-            intent.putExtra("receiverName", itemTitle);
             startActivity(intent);
+            finish();
         });
     }
 
