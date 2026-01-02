@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Build with Docker
+    - name: Build Docker Image
       run: |
         docker build -t lostify-app .
-        docker run --name lostify-container lostify-app
+        echo "Docker Image built successfully!"
