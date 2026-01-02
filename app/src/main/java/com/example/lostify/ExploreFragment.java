@@ -15,7 +15,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class HomeFragment extends Fragment {
+public class ExploreFragment extends Fragment {
 
     private View btnReportLost, btnReportFound;
     private ViewPager2 bannerViewPager;
@@ -54,11 +53,12 @@ public class HomeFragment extends Fragment {
 
     private FirebaseFirestore db;
     private Handler sliderHandler = new Handler(Looper.getMainLooper());
+    private TabLayoutMediator tabLayoutMediator; // To fix memory leak
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
+        View view = inflater.inflate(R.layout.fragment_explore, container, false);
 
         db = FirebaseFirestore.getInstance();
 
@@ -158,7 +158,9 @@ public class HomeFragment extends Fragment {
         BannerAdapter bannerAdapter = new BannerAdapter(sliderImages);
         bannerViewPager.setAdapter(bannerAdapter);
 
-        new TabLayoutMediator(tabLayoutIndicator, bannerViewPager, (tab, position) -> {}).attach();
+        // Fix: Store reference to detach later
+        tabLayoutMediator = new TabLayoutMediator(tabLayoutIndicator, bannerViewPager, (tab, position) -> {});
+        tabLayoutMediator.attach();
 
         bannerViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -176,7 +178,9 @@ public class HomeFragment extends Fragment {
     }
 
     private void startRealtimeUpdates() {
-        if (lostListener != null && foundListener != null) return;
+        // Clear old listeners if any
+        if (lostListener != null) lostListener.remove();
+        if (foundListener != null) foundListener.remove();
 
         lostListener = db.collection("LostItems").addSnapshotListener((value, error) -> {
             if (error != null || value == null) return;
@@ -204,17 +208,21 @@ public class HomeFragment extends Fragment {
             return date2.compareTo(date1);
         });
 
-        reportAdapter.updateData(masterList);
+        if (reportAdapter != null) {
+            reportAdapter.updateData(masterList);
+        }
         updateNoDataView(masterList.isEmpty());
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // Fix for Blank Screen: Remove listeners and Detach Mediator
         if (lostListener != null) lostListener.remove();
         if (foundListener != null) foundListener.remove();
-        lostListener = null;
-        foundListener = null;
+        if (tabLayoutMediator != null) tabLayoutMediator.detach(); // Important fix
+        sliderHandler.removeCallbacks(sliderRunnable);
+        bannerViewPager.setAdapter(null); // Clear adapter to prevent memory leaks
     }
 
     private void updateNoDataView(boolean isEmpty) {

@@ -32,22 +32,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FirebaseMessaging.getInstance().subscribeToTopic("all_reports");
-
         checkUserStatus();
         updateFCMToken();
 
         bottomNav = findViewById(R.id.bottom_navigation);
-
-        if (savedInstanceState == null) {
-            handleIntent(getIntent());
-        }
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
 
             if (itemId == R.id.nav_home) {
-                selectedFragment = new HomeFragment();
+                selectedFragment = new ExploreFragment();
             } else if (itemId == R.id.nav_chat) {
                 selectedFragment = new InboxFragment();
             } else if (itemId == R.id.nav_settings) {
@@ -59,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+
+        // Intent Handling
+        handleIntent(getIntent());
     }
 
     @Override
@@ -70,16 +68,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         if (intent != null && intent.getBooleanExtra("OPEN_INBOX", false)) {
+            // Open Inbox directly
             loadFragment(new InboxFragment());
             bottomNav.setSelectedItemId(R.id.nav_chat);
         } else if (intent != null && intent.hasExtra("navigate_to_chat")) {
+            // Handle Notification Click
             String receiverId = intent.getStringExtra("receiverId");
             if (receiverId != null && !receiverId.isEmpty()) {
                 openChatActivity(receiverId);
             }
         } else {
-            loadFragment(new HomeFragment());
-            bottomNav.setSelectedItemId(R.id.nav_home);
+            // Default: Open Explore
+            // Check if fragment is already Explore to avoid reload on rotation
+            if (activeFragment == null) {
+                loadFragment(new ExploreFragment());
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            }
         }
     }
 
@@ -88,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             activeFragment = fragment;
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.frame_layout, fragment)
-                    .commitAllowingStateLoss();
+                    .commit();
         }
     }
 
@@ -120,18 +124,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkUserStatus() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-
-        if (currentUser == null) {
-            sendToLogin();
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Intent intent = new Intent(MainActivity.this, LoginScreen.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         }
-    }
-
-    private void sendToLogin() {
-        Intent intent = new Intent(MainActivity.this, LoginScreen.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
     }
 }

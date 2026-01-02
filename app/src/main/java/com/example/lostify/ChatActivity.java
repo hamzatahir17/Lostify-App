@@ -7,6 +7,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,6 +59,14 @@ public class ChatActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
+        // Handle Hardware Back Button
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                navigateBack();
+            }
+        });
+
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
@@ -72,21 +82,8 @@ public class ChatActivity extends AppCompatActivity {
             return;
         }
 
-        chatRecyclerView = findViewById(R.id.chat_recycler_view);
-        messageEditText = findViewById(R.id.message_edit_text);
-        sendButton = findViewById(R.id.send_button);
-        btnBack = findViewById(R.id.btnBack);
-        imgToolbarProfile = findViewById(R.id.imgToolbarProfile);
-        tvToolbarName = findViewById(R.id.tvToolbarName);
-
-        chatList = new ArrayList<>();
-        chatAdapter = new ChatAdapter(this, chatList);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true);
-        chatRecyclerView.setLayoutManager(layoutManager);
-
-        chatRecyclerView.setAdapter(chatAdapter);
+        initViews();
+        setupRecyclerView();
 
         loadReceiverDetails();
         loadMessages();
@@ -98,13 +95,34 @@ public class ChatActivity extends AppCompatActivity {
             sendMessage(message);
         });
 
-        btnBack.setOnClickListener(v -> {
-            Intent intent = new Intent(ChatActivity.this, MainActivity.class);
-            intent.putExtra("OPEN_INBOX", true);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
-        });
+        btnBack.setOnClickListener(v -> navigateBack());
+    }
+
+    private void initViews() {
+        chatRecyclerView = findViewById(R.id.chat_recycler_view);
+        messageEditText = findViewById(R.id.message_edit_text);
+        sendButton = findViewById(R.id.send_button);
+        btnBack = findViewById(R.id.btnBack);
+        imgToolbarProfile = findViewById(R.id.imgToolbarProfile);
+        tvToolbarName = findViewById(R.id.tvToolbarName);
+    }
+
+    private void setupRecyclerView() {
+        chatList = new ArrayList<>();
+        chatAdapter = new ChatAdapter(this, chatList);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        chatRecyclerView.setLayoutManager(layoutManager);
+        chatRecyclerView.setAdapter(chatAdapter);
+    }
+
+    private void navigateBack() {
+        // This ensures consistent behavior for both back button and toolbar arrow
+        Intent intent = new Intent(ChatActivity.this, MainActivity.class);
+        intent.putExtra("OPEN_INBOX", true); // Go back to Inbox
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
     }
 
     private void seenMessage() {
@@ -126,29 +144,20 @@ public class ChatActivity extends AppCompatActivity {
 
     private void loadReceiverDetails() {
         if (receiverId == null) return;
-
         tvToolbarName.setText("Loading...");
-
         db.collection("users").document(receiverId)
                 .addSnapshotListener((documentSnapshot, error) -> {
                     if (error != null) return;
-
                     if (documentSnapshot != null && documentSnapshot.exists()) {
                         String name = documentSnapshot.getString("name");
                         if (name == null || name.isEmpty()) {
                             name = documentSnapshot.getString("username");
                         }
-
-                        if (name != null && !name.isEmpty()) {
-                            tvToolbarName.setText(name);
-                        } else {
-                            tvToolbarName.setText("User");
-                        }
+                        tvToolbarName.setText((name != null && !name.isEmpty()) ? name : "User");
 
                         String receiverImage = documentSnapshot.getString("profileImage");
                         if (receiverImage != null && !receiverImage.isEmpty()) {
                             chatAdapter.setReceiverProfileImage(receiverImage);
-
                             if (!isFinishing() && !isDestroyed()) {
                                 try {
                                     Glide.with(ChatActivity.this)
@@ -237,7 +246,6 @@ public class ChatActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(ChatActivity.this, "Notification Error: File Not Found or Auth Failed", Toast.LENGTH_SHORT).show());
             }
         });
     }
@@ -247,8 +255,7 @@ public class ChatActivity extends AppCompatActivity {
         String url = "https://fcm.googleapis.com/v1/projects/" + projectId + "/messages:send";
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, jsonBody,
-                response -> {},
-                error -> {}
+                response -> {}, error -> {}
         ) {
             @Override
             public Map<String, String> getHeaders() {
