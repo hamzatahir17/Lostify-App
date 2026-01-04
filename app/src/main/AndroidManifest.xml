@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <queries>
-        <package android:name="com.google.android.gms" />
-        <intent>
-            <action android:name="com.google.firebase.MESSAGING_EVENT" />
-        </intent>
-    </queries>
 
     <application
         android:allowBackup="true"
@@ -22,8 +16,9 @@
         android:roundIcon="@mipmap/ic_special_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Lostify"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
         android:usesCleartextTraffic="true">
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
@@ -31,7 +26,7 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            android:theme="@style/Theme.Lostify">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -39,28 +34,31 @@
         </activity>
 
         <activity android:name=".ContactUsActivity" android:exported="false" />
-        <activity android:name=".LoginScreen" android:exported="false" />
-        <activity android:name=".SignupActivity" android:exported="false" />
-        <activity android:name=".OtpActivity" android:exported="false" />
+
+        <activity android:name=".LoginScreen" android:exported="false" android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+        <activity android:name=".SignupActivity" android:exported="false" android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+        <activity android:name=".OtpActivity" android:exported="false" android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity android:name=".HelpActivity" android:exported="false" />
         <activity android:name=".PrivacyActivity" android:exported="false" />
         <activity android:name=".NotificationsActivity" android:exported="false" />
         <activity android:name=".AccountActivity" android:exported="false" />
         <activity android:name=".ItemDetailActivity" android:exported="false" />
-        <activity android:name=".ReportFoundActivity" android:exported="false" />
-        <activity android:name=".ReportLostActivity" android:exported="false" />
+        <activity android:name=".ReportFoundActivity" android:exported="false" android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity android:name=".ReportLostActivity" android:exported="false" android:windowSoftInputMode="adjustResize|stateHidden" />
 
         <activity
             android:name=".ChatActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:windowSoftInputMode="adjustResize" />
+            android:theme="@style/Theme.Lostify"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <service
             android:name=".MyFirebaseService"

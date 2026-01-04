@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,6 +26,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        View rootView = findViewById(android.R.id.content);
+        bottomNav = findViewById(R.id.bottom_navigation);
+
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            android.graphics.Rect r = new android.graphics.Rect();
+            rootView.getWindowVisibleDisplayFrame(r);
+            int screenHeight = rootView.getRootView().getHeight();
+            int keypadHeight = screenHeight - r.bottom;
+
+            if (keypadHeight > screenHeight * 0.15) {
+                if (bottomNav.getVisibility() == View.VISIBLE) {
+                    bottomNav.setVisibility(View.GONE);
+                }
+            } else {
+                if (bottomNav.getVisibility() == View.GONE) {
+                    bottomNav.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -32,10 +53,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         FirebaseMessaging.getInstance().subscribeToTopic("all_reports");
+
         checkUserStatus();
         updateFCMToken();
-
-        bottomNav = findViewById(R.id.bottom_navigation);
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
@@ -55,8 +75,13 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // Intent Handling
         handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkUserStatus();
     }
 
     @Override
@@ -68,18 +93,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         if (intent != null && intent.getBooleanExtra("OPEN_INBOX", false)) {
-            // Open Inbox directly
             loadFragment(new InboxFragment());
             bottomNav.setSelectedItemId(R.id.nav_chat);
         } else if (intent != null && intent.hasExtra("navigate_to_chat")) {
-            // Handle Notification Click
             String receiverId = intent.getStringExtra("receiverId");
             if (receiverId != null && !receiverId.isEmpty()) {
                 openChatActivity(receiverId);
             }
         } else {
-            // Default: Open Explore
-            // Check if fragment is already Explore to avoid reload on rotation
             if (activeFragment == null) {
                 loadFragment(new ExploreFragment());
                 bottomNav.setSelectedItemId(R.id.nav_home);
@@ -124,11 +145,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkUserStatus() {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Intent intent = new Intent(MainActivity.this, LoginScreen.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            redirectToLogin();
+        } else {
+            user.reload().addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    FirebaseAuth.getInstance().signOut();
+                    redirectToLogin();
+                }
+            });
         }
+    }
+
+    private void redirectToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginScreen.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
