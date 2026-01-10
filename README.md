@@ -38,11 +38,3 @@ This project is fully containerized to ensure easy distribution. Instead of manu
 
 ---
 
-## 🚀 How to Run (Recommended)
-You can run the project dashboard immediately using Docker.
-
-### Step 1: Run the Container
-Execute the following command in your terminal/PowerShell to start the server:
-
-```bash
-docker run -d -p 8080:80 --name lostify_final ghcr.io/hamzatahir17/lostify-app:final
